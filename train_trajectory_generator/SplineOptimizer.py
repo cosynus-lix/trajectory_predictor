@@ -6,7 +6,7 @@ import scipy.optimize as optimize
 
 N_POINTS_SPLINE_DISCRETIZATION = 1000
 
-class CurvatureFinder:
+class SplineOptimizer:
     def __init__(self, track):
         self.track = track
 
