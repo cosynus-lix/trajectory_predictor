@@ -21,16 +21,52 @@ class TrajectoryPrinter:
         # Read centerline
         self.centerline = np.loadtxt('../track_generator/centerline/map0.csv', delimiter=',')
         self.track_ring = shp.LinearRing(self.centerline)
+        track_poly = shp.Polygon(self.centerline)
+        # TODO: remove hardcode width
+        WIDTH = 3.243796630159458/2
+        track_xy_offset_in = track_poly.buffer(WIDTH)
+        track_xy_offset_out = track_poly.buffer(-WIDTH)
+        self.inner = np.array(track_xy_offset_in.exterior)
+        self.outer = np.array(track_xy_offset_out.exterior)
 
     def load_trajectory(self, trajectory_path):
         self.trajectory = np.load(trajectory_path)
         self.progress = self.trajectory[:, 0]
         self.deltas = self.trajectory[:, 1]
 
-    # def 
+    def plot_new_curvature(self, trajectory_path):
+        self.load_trajectory(trajectory_path)
+        fig = plt.figure()
+        ax1 = fig.add_subplot(211)
+        ax2 = fig.add_subplot(212)
+        ax1.set_aspect('equal')
+        ax1.plot(self.inner[:,0], self.inner[:,1], 'k')
+        ax1.plot(self.outer[:,0], self.outer[:,1], 'k')
+        space = np.linspace(0, 1-0.0001, 10)
+        points = []
+        for s in space:
+            p = self.track_ring.interpolate(s, normalized=True)
+            p = np.array([p.x, p.y])
+            points.append(p)
+        points = np.vstack(points)
+
+        cf = CurvatureFinder(self.centerline)
+        # spline, points = cf.optimize_points(50)
+        spline, points = cf.optimize_k(optimize=True)
+        new_space = np.linspace(0, 1-0.0001, 500)
+        curvatures = [cf.k(s) for s in new_space]
+        values = spline(new_space)
+        # print(values)
+
+        ax1.plot(values[:, 0], values[:, 1], 'm')
+        ax1.plot(points[:, 0], points[:, 1], '.m')
+        ax2.plot(new_space, curvatures)
+        # plt.plot(self.outer)
+        # plt.plot(self.progress, self.deltas)
+        plt.savefig('./test.png')
 
     def print_map_with_trajectory(self, trajectory_path):
-        # TODO: refactor and make the code more readable
+        # TODO: refactor and make the code more readable and add initial  point as arguemnt
         self.load_trajectory(trajectory_path)
         # Covert map to RGB
         map_rgb = cv2.cvtColor(self.map, cv2.COLOR_GRAY2RGB)
@@ -123,4 +159,5 @@ if __name__ == '__main__':
 
     trajectory_printer = TrajectoryPrinter(map_path, '.png', centerline_path)
     # trajectory_printer.print_map_with_trajectory('history.npy') 
-    trajectory_printer.print_trajectory_delta_by_s(trajectory)
+    # trajectory_printer.print_trajectory_delta_by_s(trajectory)
+    trajectory_printer.plot_new_curvature(trajectory)

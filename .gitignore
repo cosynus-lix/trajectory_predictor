@@ -1,2 +1,9 @@
 __pycache__
 .DS_Store
+track_generator/centerline
+track_generator/maps
+train_trajectory_generator/*.png
+train_trajectory_generator/*.yaml
+train_trajectory_generator/*.npy
+train_trajectory_generator/*.csv
+train_trajectory_generator/*.pgm
