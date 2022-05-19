@@ -9,7 +9,7 @@ from SplineOptimizer import SplineOptimizer
 from CoordinateTransform import CoordinateTransform
 
 class TrajectoryPrinter:
-    def __init__(self, map_path, map_ext, centerline_path):
+    def __init__(self, map_path, map_ext, centerline_path, track_width, track_origin, track_scale):
         # Read black and white image
         map_image_path = f'{map_path}{map_ext}'
         self.map = cv2.imread(map_image_path, cv2.IMREAD_GRAYSCALE)
@@ -20,14 +20,14 @@ class TrajectoryPrinter:
             self.map_config = yaml.safe_load(f)
 
         # Read centerline
-        self.centerline = np.loadtxt('../track_generator/centerline/map0.csv', delimiter=',')
+        self.centerline = np.loadtxt(centerline_path, delimiter=',')
         self.track_ring = shp.LinearRing(self.centerline)
         track_poly = shp.Polygon(self.centerline)
-        # TODO: remove hardcode width
-        WIDTH = 3.243796630159458/2
-        self.width = WIDTH
-        track_xy_offset_in = track_poly.buffer(WIDTH)
-        track_xy_offset_out = track_poly.buffer(-WIDTH)
+        self.track_origin = track_origin
+        self.track_scale = track_scale
+        self.half_width = track_width / 2
+        track_xy_offset_in = track_poly.buffer(self.half_width)
+        track_xy_offset_out = track_poly.buffer(-self.half_width)
         self.inner = np.array(track_xy_offset_in.exterior)
         self.outer = np.array(track_xy_offset_out.exterior)
 
@@ -55,11 +55,11 @@ class TrajectoryPrinter:
         
         return displaced_points
 
-    def _print_map_matplotlib(self, ax, displaced_points, title='Map with trajectory (magenta)', show_centerline=False):
+    def _print_map_matplotlib(self, ax, displaced_points, title='Map with trajectory (magenta)', show_centerline=False, color='m'):
         ax.plot(self.inner[:,0], self.inner[:,1], 'k')
         ax.plot(self.outer[:,0], self.outer[:,1], 'k')
 
-        ax.plot(displaced_points[:,0], displaced_points[:,1], 'm')
+        ax.plot(displaced_points[:,0], displaced_points[:,1], color)
 
         if show_centerline:
             progresses = np.linspace(0, 1-0.0001, 1000)
@@ -94,82 +94,6 @@ class TrajectoryPrinter:
         cv2.imshow('Map with trajectory (magenta)', map_rgb)
         cv2.waitKey(0)
     
-    def print_trajectory_delta_by_s(self, trajectory_path):
-        # TODO: add information about the track margins
-        # TODO: refactor
-        # TODO: publish changes
-        # TODO: plot segmented centerline, curvature along the line and displacement on the curvatuer plot
-        # TODO: numbe the points and show them as vertical dotted lines in the curvature plot
-        # TODO: show the error in the title as well
-        # TODO: do all that in the function below and then put all these filters somewere else
-        from scipy.signal import savgol_filter, butter, filtfilt
-
-        self._load_trajectory(trajectory_path)
-
-        # plt.plot(self.progress, self.deltas)
-        # print(self.track_ring.length)
-        # exit()
-        space = np.linspace(0, 1-0.0001, 300)
-        points = []
-        for s in space:
-            p = self.track_ring.interpolate(s, normalized=True)
-            p = np.array([p.x, p.y])
-            points.append(p)
-        points = np.vstack(points)
-        print(points)
-
-        cf = CurvatureFinder(points)
-        curvatures = [cf.k(s) for s in space]
-        from scipy.fft import fft, fftfreq
-        
-        # yf = fft(curvatures)
-        # xf = fftfreq(400, 1/400)
-        # plt.plot(xf, yf)
-        b, a = butter(5, 1/1.2, 'low')
-        output = filtfilt(b, a, curvatures)
-        res = np.concatenate((output, np.array([0, 0])))
-        res2 = np.concatenate((np.array([0, 0]), output))
-        ds = (1-0.0001)/500
-        delta = (res-res2)/ds
-        # plt.plot(np.concatenate((space, np.array([0]))), delta[:-1])
-        # plt.plot(space, curvatures, label='filtered')
-        plt.plot(space, savgol_filter(output, 5, 3))
-        # plt.plot(space, output)
-
-        plt.show()
- 
-    def plot_new_curvature(self, trajectory_path):
-        # TODO: refactor and change position
-        self._load_trajectory(trajectory_path)
-        fig = plt.figure()
-        ax1 = fig.add_subplot(211)
-        ax2 = fig.add_subplot(212)
-        ax1.set_aspect('equal')
-        ax1.plot(self.inner[:,0], self.inner[:,1], 'k')
-        ax1.plot(self.outer[:,0], self.outer[:,1], 'k')
-        space = np.linspace(0, 1-0.0001, 10)
-        points = []
-        for s in space:
-            p = self.track_ring.interpolate(s, normalized=True)
-            p = np.array([p.x, p.y])
-            points.append(p)
-        points = np.vstack(points)
-
-        cf = SplineOptimizer(self.centerline)
-        cf.sample_spline_by_tolerance(0.5, optimize=False, verbose=True)
-        spline, points = cf.get_spline_and_points()
-        new_space = np.linspace(0, 1-0.0001, 500)
-        curvatures = [cf.k(s) for s in new_space]
-        values = cf.interp(new_space)
-        # print(values)
-
-        ax1.plot(values[:, 0], values[:, 1], 'm')
-        ax1.plot(points[:, 0], points[:, 1], '.m')
-        ax2.plot(new_space, curvatures)
-        # plt.plot(self.outer)
-        # plt.plot(self.progress, self.deltas)
-        plt.savefig('./test.png')
-    
     def plot_curvature_with_delta(self, trajectory_path, tolerance=0.5, verbose=False, optimize=True):
         """
         Produces a plot which shows the evolution of the curvature over the trajectory
@@ -186,15 +110,33 @@ class TrajectoryPrinter:
 
         progress_space = np.linspace(0, 1-0.0001, 1000)
         curvatures = np.array([spline_optim.k(s) for s in progress_space])
-        # curvatures = curvatures/np.max(curvatures)
-        displaced_points = self._add_to_centerline(progress_space, curvatures*self.width)
+        curvatures = curvatures/np.max(curvatures)*self.half_width
+        displaced_curvature_points = self._add_to_centerline(progress_space, curvatures)
+        spline_points = spline_optim.interp(progress_space)
+        control_spline_points = spline_optim.get_spline_and_points()[1]
+        spline_errors = np.array([self.track_ring.distance(shp.Point(p[0], p[1])) for p in spline_points])
+        progress_control_points = np.array([self.track_ring.project(shp.Point(p[0], p[1]), normalized=True) 
+            for p in control_spline_points])
 
+        fig = plt.figure()
+        ax1 = fig.add_subplot(221)
+        ax2 = fig.add_subplot(222)
+        ax3 = fig.add_subplot(212)
 
-        _, ax = plt.subplots(2)
-        self._print_map_matplotlib(ax[0], displaced_points, show_centerline=True)
+        self._print_map_matplotlib(ax1, displaced_curvature_points, show_centerline=True, title='Curvature along map', color='g')
 
-        ax[1].plot(progress_space, curvatures)
-        # plt.savefig('./trajectory.png')
+        self._print_map_matplotlib(ax2, spline_points, show_centerline=True, title='Error along map', color='b')
+        ax2.plot(control_spline_points[:, 0], control_spline_points[:, 1], 'm.')
+
+        ax3.set_title(f'Curvature and spline error by path progress with tolerance {tolerance}')
+        ax3.plot(progress_space, curvatures, color='g', label='Curvature')
+        ax3.plot(progress_space, spline_errors, color='b', label='Spline error')
+        ax3.legend()
+        ax3.axhline(y=self.half_width, color='k', linestyle='-')
+        ax3.axhline(y=-self.half_width, color='k', linestyle='-')
+        for p in progress_control_points:
+            ax3.axvline(p, c='m', ls='-.')
+        plt.savefig('./trajectory_evaluation.png')
         plt.show()
 
     def plot_trajectory(self, trajectory_path, matplotlib=False):
@@ -213,7 +155,7 @@ class TrajectoryPrinter:
             self._print_map_matplotlib(ax, displaced_points)
             plt.savefig('./trajectory.png')
         else:
-            args = (np.array([-78.21853769831466,-44.37590462453829]), 0.0625)
+            args = (self.track_origin, self.track_scale)
             self._print_over_map_image(displaced_points, *args)
 
 
@@ -223,8 +165,8 @@ if __name__ == '__main__':
     centerline_path = '../track_generator/centerline/map0.csv'
     trajectory = './history.npy'
 
-    trajectory_printer = TrajectoryPrinter(map_path, '.png', centerline_path)
+    trajectory_printer = TrajectoryPrinter(map_path, '.png', centerline_path, 3.243796630159458, np.array([-78.21853769831466,-44.37590462453829]), 0.0625)
     # trajectory_printer.plot_trajectory('history.npy', matplotlib=True) 
-    trajectory_printer.plot_curvature_with_delta('history.npy', verbose=True, optimize=False) 
-    # trajectory_printer.print_trajectory_delta_by_s(trajectory)
-    # trajectory_printer.plot_new_curvature(trajectory)
+    trajectory_printer.plot_curvature_with_delta('history.npy', tolerance=0.7, verbose=True, optimize=True) 
+    trajectory_printer.print_trajectory_delta_by_s(trajectory)
+    trajectory_printer.plot_new_curvature(trajectory)
