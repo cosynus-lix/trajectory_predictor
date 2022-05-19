@@ -45,9 +45,9 @@ class TrajectoryPrinter:
         for point, p, d in zip(points_over_centerline, progresses, deltas):
             pos = np.array([point.x, point.y])
             point_before = self.track_ring.interpolate(p-0.001, normalized=True)
-            pos_before = np.array([-point_before.x, point_before.y])
+            pos_before = np.array([point_before.x, point_before.y])
             ds = pos - pos_before
-            ds_rotated = np.array([-ds[1], ds[0]])
+            ds_rotated = np.array([ds[1], -ds[0]])
             ds_rot_normalized = ds_rotated / np.linalg.norm(ds_rotated) * d
             pos += ds_rot_normalized
             displaced_points.append(pos)
@@ -55,20 +55,23 @@ class TrajectoryPrinter:
         
         return displaced_points
 
-    def _print_map_matplotlib(self, ax, displaced_points):
+    def _print_map_matplotlib(self, ax, displaced_points, title='Map with trajectory (magenta)', show_centerline=False):
         ax.plot(self.inner[:,0], self.inner[:,1], 'k')
         ax.plot(self.outer[:,0], self.outer[:,1], 'k')
 
         ax.plot(displaced_points[:,0], displaced_points[:,1], 'm')
 
+        if show_centerline:
+            progresses = np.linspace(0, 1-0.0001, 1000)
+            points_over_centerline = self._add_to_centerline(progresses, np.zeros(len(progresses)))
+            ax.plot(points_over_centerline[:,0], points_over_centerline[:,1], 'r-.', alpha=0.5)
+
         # Plot config
-        ax.set_title('Map with trajectory (magenta)')
+        ax.set_title(title)
         ax.set_aspect('equal')
         # Remove x and y axis
         ax.set_xticks([])
         ax.set_yticks([])
-
-        plt.savefig('./trajectory.png')
 
     def _print_over_map_image(self, displaced_points, origin, resolution):
         # Covert map to RGB
@@ -94,6 +97,7 @@ class TrajectoryPrinter:
     def print_trajectory_delta_by_s(self, trajectory_path):
         # TODO: add information about the track margins
         # TODO: refactor
+        # TODO: publish changes
         # TODO: plot segmented centerline, curvature along the line and displacement on the curvatuer plot
         # TODO: numbe the points and show them as vertical dotted lines in the curvature plot
         # TODO: show the error in the title as well
@@ -153,7 +157,6 @@ class TrajectoryPrinter:
 
         cf = SplineOptimizer(self.centerline)
         cf.sample_spline_by_tolerance(0.5, optimize=False, verbose=True)
-        cf.map_progress_to_s(0.5)
         spline, points = cf.get_spline_and_points()
         new_space = np.linspace(0, 1-0.0001, 500)
         curvatures = [cf.k(s) for s in new_space]
@@ -166,8 +169,41 @@ class TrajectoryPrinter:
         # plt.plot(self.outer)
         # plt.plot(self.progress, self.deltas)
         plt.savefig('./test.png')
+    
+    def plot_curvature_with_delta(self, trajectory_path, tolerance=0.5, verbose=False, optimize=True):
+        """
+        Produces a plot which shows the evolution of the curvature over the trajectory
+        
+        trajectory_path: path to the trajectory file
+        tolerance: tolerance for the spline interpolation
+        verbose: if True, prints the optimization steps
+        optimize: if True, optimizes the spline to have fewer points
+        """
+
+        self._load_trajectory(trajectory_path)
+        spline_optim = SplineOptimizer(self.centerline)
+        spline_optim.sample_spline_by_tolerance(tolerance, optimize=optimize, verbose=verbose)
+
+        progress_space = np.linspace(0, 1-0.0001, 1000)
+        curvatures = np.array([spline_optim.k(s) for s in progress_space])
+        # curvatures = curvatures/np.max(curvatures)
+        displaced_points = self._add_to_centerline(progress_space, curvatures*self.width)
+
+
+        _, ax = plt.subplots(2)
+        self._print_map_matplotlib(ax[0], displaced_points, show_centerline=True)
+
+        ax[1].plot(progress_space, curvatures)
+        # plt.savefig('./trajectory.png')
+        plt.show()
 
     def plot_trajectory(self, trajectory_path, matplotlib=False):
+        """
+        Produces a plot which shows the trajectory
+        
+        trajectory_path: path to the trajectory file
+        matplotlib: if True, uses matplotlib to plot the trajectory else uses a OpenCV
+        """
         self._load_trajectory(trajectory_path)
 
         displaced_points = self._add_to_centerline(self.progress, self.deltas)
@@ -175,6 +211,7 @@ class TrajectoryPrinter:
         if matplotlib:
             _, ax = plt.subplots()
             self._print_map_matplotlib(ax, displaced_points)
+            plt.savefig('./trajectory.png')
         else:
             args = (np.array([-78.21853769831466,-44.37590462453829]), 0.0625)
             self._print_over_map_image(displaced_points, *args)
@@ -187,6 +224,7 @@ if __name__ == '__main__':
     trajectory = './history.npy'
 
     trajectory_printer = TrajectoryPrinter(map_path, '.png', centerline_path)
-    trajectory_printer.plot_trajectory('history.npy', matplotlib=True) 
+    # trajectory_printer.plot_trajectory('history.npy', matplotlib=True) 
+    trajectory_printer.plot_curvature_with_delta('history.npy', verbose=True, optimize=False) 
     # trajectory_printer.print_trajectory_delta_by_s(trajectory)
     # trajectory_printer.plot_new_curvature(trajectory)
