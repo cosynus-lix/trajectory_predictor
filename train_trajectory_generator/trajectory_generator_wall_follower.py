@@ -7,7 +7,7 @@ import shapely.geometry as shp
 
 from pyglet.gl import GL_POINTS
 
-from CurvatureFinder import CurvatureFinder
+from SplineOptimizer import SplineOptimizer
 
 ###############################################
 # Generates a trajectory using wall following #
@@ -46,7 +46,8 @@ def main():
     # Rad csv file with numpy
     track = np.loadtxt('../track_generator/centerline/map0.csv', delimiter=',')
     track_ring = shp.LinearRing(track)
-    cf = CurvatureFinder(track)
+    cf = SplineOptimizer(track)
+    cf.sample_spline_by_tolerance(0.1, optimize=False, verbose=False)
     
     obs, step_reward, done, info = env.reset(np.array([[0, 0, 1.37]]))
     if DISPLAY:

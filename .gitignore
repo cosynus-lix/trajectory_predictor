@@ -7,3 +7,4 @@ train_trajectory_generator/*.yaml
 train_trajectory_generator/*.npy
 train_trajectory_generator/*.csv
 train_trajectory_generator/*.pgm
+train_trajectory_generator/*.pgf

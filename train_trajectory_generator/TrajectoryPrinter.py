@@ -1,12 +1,24 @@
 import yaml
 
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 import cv2
 import shapely.geometry as shp
 
 from SplineOptimizer import SplineOptimizer
 from CoordinateTransform import CoordinateTransform
+
+LATEX_OUTPUT = False
+
+if LATEX_OUTPUT:
+    matplotlib.use("pgf")
+    matplotlib.rcParams.update({
+        "pgf.texsystem": "pdflatex",
+        'font.family': 'serif',
+        'text.usetex': True,
+        'pgf.rcfonts': False,
+    })
 
 class TrajectoryPrinter:
     def __init__(self, map_path, map_ext, centerline_path, track_width, track_origin, track_scale):
@@ -136,7 +148,10 @@ class TrajectoryPrinter:
         ax3.axhline(y=-self.half_width, color='k', linestyle='-')
         for p in progress_control_points:
             ax3.axvline(p, c='m', ls='-.')
-        plt.savefig('./trajectory_evaluation.png')
+        if LATEX_OUTPUT:
+            plt.savefig('./trajectory_evaluation.pgf')
+        else:
+            plt.savefig('./trajectory_evaluation.png')
         plt.show()
 
     def plot_trajectory(self, trajectory_path, matplotlib=False):
@@ -168,5 +183,3 @@ if __name__ == '__main__':
     trajectory_printer = TrajectoryPrinter(map_path, '.png', centerline_path, 3.243796630159458, np.array([-78.21853769831466,-44.37590462453829]), 0.0625)
     # trajectory_printer.plot_trajectory('history.npy', matplotlib=True) 
     trajectory_printer.plot_curvature_with_delta('history.npy', tolerance=0.7, verbose=True, optimize=True) 
-    trajectory_printer.print_trajectory_delta_by_s(trajectory)
-    trajectory_printer.plot_new_curvature(trajectory)
