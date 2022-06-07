@@ -1,6 +1,7 @@
 from scipy.interpolate import CubicSpline
 import matplotlib.pyplot as plt
 import numpy as np
+import pickle
 import shapely.geometry as shp
 import scipy.optimize as optimize
 
@@ -125,6 +126,13 @@ class SplineOptimizer:
         for p in spline_points:
             self.spline_progress_discretization.append(spline_points_ring.project(shp.Point(p[0], p[1]), normalized=True))
         self.spline_progress_discretization = np.array(self.spline_progress_discretization)
+
+    def dump_spline_and_points(self):
+        pickle.dump((self.cs, self.spline_points), open('spline.pickle', 'wb'))
+
+    def load_spline(self, filename='spline.pickle'):
+        spline_and_points = pickle.load(open(filename, 'rb'))
+        self.set_spline_and_points(spline_and_points)
     
     def get_spline_and_points(self):
         return self.cs, self.spline_points

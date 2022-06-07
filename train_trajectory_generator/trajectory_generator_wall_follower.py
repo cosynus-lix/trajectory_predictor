@@ -46,8 +46,9 @@ def main():
     # Rad csv file with numpy
     track = np.loadtxt('../track_generator/centerline/map0.csv', delimiter=',')
     track_ring = shp.LinearRing(track)
-    cf = SplineOptimizer(track)
-    cf.sample_spline_by_tolerance(0.1, optimize=False, verbose=False)
+    optim = SplineOptimizer(track)
+    optim.sample_spline_by_tolerance(0.1, optimize=False, verbose=False)
+    optim.dump_spline_and_points()
     
     obs, step_reward, done, info = env.reset(np.array([[0, 0, 1.37]]))
     if DISPLAY:
@@ -75,7 +76,7 @@ def main():
         else:
             distance = projection.distance(current_position)
         history.append([progress, distance])
-        print(f's: {progress:.2f}, delta:{distance:.2f}, k:{cf.k(progress):.2f}')
+        print(f's: {progress:.2f}, delta:{distance:.2f}, k:{optim.k(progress):.2f}')
 
         # Control
         ranges = np.array([x if x < 100 else 0 for x in obs['scans'][0]])
