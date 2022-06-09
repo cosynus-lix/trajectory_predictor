@@ -1,0 +1,7 @@
+*.png
+*.yaml
+*.npy
+*.csv
+*.pgm
+*.pgf
+*.pickle
