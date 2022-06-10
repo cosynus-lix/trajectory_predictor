@@ -12,10 +12,10 @@ RUN python3.8 -m pip install pip --upgrade
 
 RUN rm -f /usr/bin/python3 && ln -s /usr/bin/python3.8 /usr/bin/python3
 
-COPY requirements.txt ./
+# COPY requirements.txt ./
 
-# RUN pip3 install matplotlib \ 
-#                  darts \
-#                  scipy
+RUN pip3 install matplotlib \ 
+                 darts \
+                 scipy
 
-RUN pip3 install -r requirements.txt
+# RUN pip3 install -r requirements.txt
