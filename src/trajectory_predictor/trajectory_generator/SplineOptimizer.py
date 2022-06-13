@@ -137,6 +137,9 @@ class SplineOptimizer:
     def get_spline_and_points(self):
         return self.cs, self.spline_points
 
+    def get_track_ring(self):
+        return self.track_ring
+
     def map_progress_to_s(self, progress):
         # TODO: maybe use dicotomy to invert this
         return self.spline_s_discretization[np.searchsorted(self.spline_progress_discretization, progress)-1]
