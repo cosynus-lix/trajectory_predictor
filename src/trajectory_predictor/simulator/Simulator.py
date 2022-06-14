@@ -7,4 +7,7 @@ class Simulator(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def _step(self):
         pass
-    
+
+    @abc.abstractmethod
+    def run(self):
+        pass
