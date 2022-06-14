@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import cv2
 import shapely.geometry as shp
 
-from SplineOptimizer import SplineOptimizer
-from CoordinateTransform import CoordinateTransform
+from .SplineOptimizer import SplineOptimizer
+from .CoordinateTransform import CoordinateTransform
 
 LATEX_OUTPUT = False
 
@@ -173,6 +173,14 @@ class TrajectoryPrinter:
             args = (self.track_origin, self.track_scale)
             self._print_over_map_image(displaced_points, *args)
 
+    def plot_trajectory_frame(self, trajectory, pause_delay=0.05):
+        progress = trajectory[:, 0]
+        deltas = trajectory[:, 1]
+
+        displaced_points = self._add_to_centerline(progress, deltas)
+        _, ax = plt.subplots()
+        self._print_map_matplotlib(ax, displaced_points)
+        plt.pause(pause_delay)
 
 
 if __name__ == '__main__':

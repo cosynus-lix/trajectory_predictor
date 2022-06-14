@@ -1,6 +1,8 @@
 import time
+import os
 
 import numpy as np
+import matplotlib.pyplot as plt
 import shapely.geometry as shp
 import gym
 
@@ -40,13 +42,10 @@ class F1TenthSoloSimulator(Simulator):
         # Control
         self._steer, self._speed = self._controller.get_control(obs)
         self._laptime += step_reward
-
-        if True:
-            self.env.render(mode='human')
         
         return obs, done
     
-    def run(self, n_laps=1, display=True, init_speed=5):
+    def run(self, printer=None, n_laps=1, display=True, init_speed=5):
         start_time = time.time()
         self._speed, self._steer = init_speed, 0.0
         self._history = []
@@ -54,12 +53,28 @@ class F1TenthSoloSimulator(Simulator):
         self._progress = 0.0
 
         _, _, done, _ = self.env.reset(np.array([[0, 0, np.pi/2]]))
+
+        step_i = 0
         while not done:
             obs, done = self._step(n_laps)
+            
+            if printer is not None and step_i % 100 == 0:
+                current_trajectory = np.array(self._history)
+                
+                printer.plot_trajectory_frame(current_trajectory)
 
-            # Do print if needed
-            if True:
-                self.env.render(mode='human')
+            step_i += 1
 
-    def save_history(self, filename):
-        raise NotImplementedError
+        printer.plot_trajectory_frame(current_trajectory)
+        plt.waitforbuttonpress()
+
+    def save_history(self, path):
+        # Create path if it doesn't exist
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        # Save history
+        np.save(os.path.join(path, 'history.npy'), np.array(self._history))
+
+        # Dump spline
+        self._spline_optimizer.dump_spline_and_points(os.path.join(path, 'spline.npy'))
