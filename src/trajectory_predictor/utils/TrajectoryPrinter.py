@@ -3,7 +3,6 @@ import yaml
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-import cv2
 import shapely.geometry as shp
 
 from .SplineOptimizer import SplineOptimizer
@@ -22,10 +21,6 @@ if LATEX_OUTPUT:
 
 class TrajectoryPrinter:
     def __init__(self, map_path, map_ext, centerline_path, track_width, track_origin, track_scale):
-        # Read black and white image
-        map_image_path = f'{map_path}{map_ext}'
-        self.map = cv2.imread(map_image_path, cv2.IMREAD_GRAYSCALE)
-
         # Read configuration yaml file for the map
         map_config_path = f'{map_path}.yaml'
         with open(map_config_path, 'r') as f:
@@ -84,27 +79,6 @@ class TrajectoryPrinter:
         # Remove x and y axis
         ax.set_xticks([])
         ax.set_yticks([])
-
-    def _print_over_map_image(self, displaced_points, origin, resolution):
-        # Covert map to RGB
-        map_rgb = cv2.cvtColor(self.map, cv2.COLOR_GRAY2RGB)
-        output_shape = (map_rgb.shape[0], map_rgb.shape[1])
-
-        for point in displaced_points:
-            # Radius of circles which compose the trajectory
-            radius = 1
-            
-            # Blue color in BGR (magenta)
-            color = (255, 0, 255)
-            thickness = 1
-
-            map_rgb = cv2.circle(map_rgb, 
-                                CoordinateTransform.metric_to_image(point, origin, output_shape, resolution),
-                                radius, color, thickness)
-
-
-        cv2.imshow('Map with trajectory (magenta)', map_rgb)
-        cv2.waitKey(0)
     
     def plot_curvature_with_delta(self, trajectory_path, tolerance=0.5, verbose=False, optimize=True):
         """
@@ -154,7 +128,7 @@ class TrajectoryPrinter:
             plt.savefig('./trajectory_evaluation.png')
         plt.show()
 
-    def plot_trajectory(self, trajectory_path, matplotlib=False):
+    def plot_trajectory(self, trajectory_path):
         """
         Produces a plot which shows the trajectory
         
@@ -165,13 +139,9 @@ class TrajectoryPrinter:
 
         displaced_points = self._add_to_centerline(self.progress, self.deltas)
 
-        if matplotlib:
-            _, ax = plt.subplots()
-            self._print_map_matplotlib(ax, displaced_points)
-            plt.savefig('./trajectory.png')
-        else:
-            args = (self.track_origin, self.track_scale)
-            self._print_over_map_image(displaced_points, *args)
+        _, ax = plt.subplots()
+        self._print_map_matplotlib(ax, displaced_points)
+        plt.savefig('./trajectory.png')
 
     def plot_trajectory_frame(self, trajectory, pause_delay=0.05):
         progress = trajectory[:, 0]
