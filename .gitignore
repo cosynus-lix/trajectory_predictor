@@ -6,3 +6,4 @@ trajectory_predictor.egg-info
 maps/
 centerline/
 runs/
+experiments/

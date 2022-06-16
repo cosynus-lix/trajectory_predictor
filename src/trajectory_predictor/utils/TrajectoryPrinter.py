@@ -143,6 +143,20 @@ class TrajectoryPrinter:
         self._print_map_matplotlib(ax, displaced_points)
         plt.savefig('./trajectory.png')
 
+    def plot_trajectory_with_prediction(self, trajectory, prediction, color='b'):
+        progress_trajectory = trajectory[:, 0]
+        deltas_trajectory = trajectory[:, 1]
+        progress_prediction = prediction[:, 0]
+        deltas_prediction = prediction[:, 1]
+
+        displaced_points_trajectory = self._add_to_centerline(progress_trajectory, deltas_trajectory)
+        displaced_points_prediction = self._add_to_centerline(progress_prediction, deltas_prediction)
+
+        _, ax = plt.subplots()
+        self._print_map_matplotlib(ax, displaced_points_trajectory)
+        self._print_map_matplotlib(ax, displaced_points_prediction, color='b')
+        plt.savefig('./trajectory.png')
+
     def plot_trajectory_frame(self, trajectory, pause_delay=0.05):
         progress = trajectory[:, 0]
         deltas = trajectory[:, 1]
