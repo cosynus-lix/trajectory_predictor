@@ -127,8 +127,8 @@ class SplineOptimizer:
             self.spline_progress_discretization.append(spline_points_ring.project(shp.Point(p[0], p[1]), normalized=True))
         self.spline_progress_discretization = np.array(self.spline_progress_discretization)
 
-    def dump_spline_and_points(self):
-        pickle.dump((self.cs, self.spline_points), open('spline.pickle', 'wb'))
+    def dump_spline_and_points(self, path='spline.pickle'):
+        pickle.dump((self.cs, self.spline_points), open(path, 'wb'))
 
     def load_spline(self, filename='spline.pickle'):
         spline_and_points = pickle.load(open(filename, 'rb'))
@@ -136,6 +136,9 @@ class SplineOptimizer:
     
     def get_spline_and_points(self):
         return self.cs, self.spline_points
+
+    def get_track_ring(self):
+        return self.track_ring
 
     def map_progress_to_s(self, progress):
         # TODO: maybe use dicotomy to invert this

@@ -7,7 +7,8 @@ import shapely.geometry as shp
 
 #from pyglet.gl import GL_POINTS
 
-from SplineOptimizer import SplineOptimizer
+from trajectory_predictor.utils.SplineOptimizer import SplineOptimizer
+from trajectory_predictor.controller.WallFollowerController import WallFollowerController
 
 ###############################################
 # Generates a trajectory using wall following #
@@ -44,13 +45,13 @@ def main():
     env = gym.make('f110_gym:f110-v0', map='../track_generator/maps/map0', map_ext='.pgm', num_agents=1)
     env.add_render_callback(render_callback)
     # Rad csv file with numpy
-    track = np.loadtxt('../track_generator/centerline/map0.csv', delimiter=',')
+    track = np.loadtxt('../centerline/map0.csv', delimiter=',')
     track_ring = shp.LinearRing(track)
     optim = SplineOptimizer(track)
     optim.sample_spline_by_tolerance(0.1, optimize=False, verbose=False)
     optim.dump_spline_and_points()
     
-    obs, step_reward, done, info = env.reset(np.array([[0, 0, 1.37]]))
+    obs, step_reward, done, info = env.reset(np.array([[0, 0, np.pi/2]]))
     if DISPLAY:
         env.render()
 
@@ -59,6 +60,8 @@ def main():
     speed, steer = 5,0
     progress = 0
     history = []
+
+    controller = WallFollowerController()
 
     while not done:
         obs, step_reward, done, info = env.step(np.array([[steer, speed]]))
@@ -79,12 +82,7 @@ def main():
         print(f's: {progress:.2f}, delta:{distance:.2f}, k:{optim.k(progress):.2f}')
 
         # Control
-        ranges = np.array([x if x < 100 else 0 for x in obs['scans'][0]])
-        delta = np.sum(ranges[:len(ranges)//2]-ranges[len(ranges)//2:])
-        control = delta*0.0001
-        angle = max(min(control, np.pi/2), -np.pi/2)
-        steer = -angle
-
+        steer, speed = controller.get_control(obs)
         laptime += step_reward
         if DISPLAY:
             env.render(mode='human')

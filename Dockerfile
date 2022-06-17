@@ -12,10 +12,20 @@ RUN python3.8 -m pip install pip --upgrade
 
 RUN rm -f /usr/bin/python3 && ln -s /usr/bin/python3.8 /usr/bin/python3
 
-COPY requirements.txt ./
+RUN apt-get install python3.8-venv
 
-# RUN pip3 install matplotlib \ 
-#                  darts \
-#                  scipy
+RUN python3 -m venv /venv
 
-RUN pip3 install -r requirements.txt
+COPY / /trajectory_predictor/
+
+# To make source work
+RUN rm /bin/sh && ln -s /bin/bash /bin/sh
+
+RUN source /venv/bin/activate && \
+    pip install pip --upgrade && \
+    pip install matplotlib \ 
+                darts \
+                scipy
+
+RUN source /venv/bin/activate && \
+    cd /trajectory_predictor && pip install -e .

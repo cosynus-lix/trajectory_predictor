@@ -2,3 +2,8 @@ __pycache__
 .DS_Store
 track_generator/centerline
 track_generator/maps
+trajectory_predictor.egg-info
+maps/
+centerline/
+runs/
+experiments/
