@@ -5,7 +5,7 @@ import gym
 import numpy as np
 import shapely.geometry as shp
 
-from pyglet.gl import GL_POINTS
+#from pyglet.gl import GL_POINTS
 
 from SplineOptimizer import SplineOptimizer
 
@@ -40,7 +40,7 @@ def render_callback(env_renderer):
 
 def main():
     N_LAPS = 1
-    DISPLAY = True
+    DISPLAY = False
     env = gym.make('f110_gym:f110-v0', map='../track_generator/maps/map0', map_ext='.pgm', num_agents=1)
     env.add_render_callback(render_callback)
     # Rad csv file with numpy
