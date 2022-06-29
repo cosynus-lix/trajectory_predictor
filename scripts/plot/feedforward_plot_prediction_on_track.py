@@ -1,6 +1,6 @@
 from inspect import ismethoddescriptor
 import numpy as np
-
+from trajectory_predictor.model.Basic_feedforward.BasicfeedforwardModel import BasicfeedforwardModel
 from trajectory_predictor.model.DartsRNNModel import DartsRNNModel
 from trajectory_predictor.dataset.Dataset import Dataset
 from trajectory_predictor.utils.TrajectoryPrinter import TrajectoryPrinter
@@ -11,19 +11,21 @@ if __name__ == "__main__":
     ###############################################
 
         # Load model
-    model = DartsRNNModel()
-    model.load('../../experiments/model0')
-
-    # Load dataset
+    past = 30
+    horizon = 4
+    epochs = 10
     dataset = Dataset()
     dataset.load_data('../../centerline/map0.csv', '../../runs/run0/spline.npy', '../../runs/run0/history.npy')
+    model = BasicfeedforwardModel(past,64,horizon)
+    model.load('../../experiments/Feedforward_model/model1/Feedforward_model.pt')
+
 
     # Get series to predict
     data_np = dataset.to_np()
     point = 1500
-    series = data_np[:point, :-1]
     curvatures = data_np[:, 2]
-    prediction = model.predict(series, curvatures, 800)
+    prediction,y = model.predict(dataset,1500,1500,plot=True)
+    print(prediction.shape)
 
     # Setting up the printer
     map_path = '../../maps/map0'

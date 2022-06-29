@@ -41,6 +41,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--seed', type=int, default=123, help='Seed for the numpy rng.')
 parser.add_argument('--num_maps', type=int, default=1, help='Number of maps to generate.')
+parser.add_argument('--name',type=str,default=None,help='Name of the map files')
 args = parser.parse_args()
 
 np.random.seed(args.seed)
@@ -53,6 +54,7 @@ if not os.path.exists(f'{BASE_PATH}maps'):
 if not os.path.exists(f'{BASE_PATH}centerline'):
     print('Creating centerline/ directory.')
     os.makedirs(f'{BASE_PATH}centerline')
+
 
 NUM_MAPS = args.num_maps
 WIDTH = 10.0
@@ -190,6 +192,7 @@ def convert_track(track, track_int, track_ext, iter):
     ax.set_ylim(-300, 300)
     plt.axis('off')
     plt.savefig(f'{BASE_PATH}maps/map' + str(iter) + '.png', dpi=DPI_OUTPUT)
+
 
     map_width, map_height = fig.canvas.get_width_height()
     print('map size: ', map_width, map_height, 'dpi: ', fig.dpi)
