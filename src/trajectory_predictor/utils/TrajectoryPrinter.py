@@ -21,7 +21,7 @@ if LATEX_OUTPUT:
     })
 
 class TrajectoryPrinter:
-    def __init__(self, map_path, map_ext, centerline_path, track_width, track_origin, track_scale):
+    def __init__(self, map_path, map_ext, centerline_path, track_width):
         # Read black and white image
         map_image_path = f'{map_path}{map_ext}'
         self.map = cv2.imread(map_image_path, cv2.IMREAD_GRAYSCALE)
@@ -35,8 +35,8 @@ class TrajectoryPrinter:
         self.centerline = np.loadtxt(centerline_path, delimiter=',')
         self.track_ring = shp.LinearRing(self.centerline)
         track_poly = shp.Polygon(self.centerline)
-        self.track_origin = track_origin
-        self.track_scale = track_scale
+        self.track_origin = self.map_config['origin'][:2]
+        self.track_scale = self.map_config['resolution']
         self.half_width = track_width / 2
         track_xy_offset_in = track_poly.buffer(self.half_width)
         track_xy_offset_out = track_poly.buffer(-self.half_width)
@@ -103,8 +103,7 @@ class TrajectoryPrinter:
                                 radius, color, thickness)
 
 
-        cv2.imshow('Map with trajectory (magenta)', map_rgb)
-        cv2.waitKey(0)
+        cv2.imwrite('./output.png', map_rgb)
     
     def plot_curvature_with_delta(self, trajectory_path, tolerance=0.5, verbose=False, optimize=True):
         """
@@ -154,7 +153,7 @@ class TrajectoryPrinter:
             plt.savefig('./trajectory_evaluation.png')
         plt.show()
 
-    def plot_trajectory(self, trajectory_path, matplotlib=False):
+    def plot_trajectory(self, trajectory_path, matplotlib=True):
         """
         Produces a plot which shows the trajectory
         
@@ -202,6 +201,6 @@ if __name__ == '__main__':
     centerline_path = '../track_generator/centerline/map0.csv'
     trajectory = './history.npy'
 
-    trajectory_printer = TrajectoryPrinter(map_path, '.png', centerline_path, 3.243796630159458, np.array([-78.21853769831466,-44.37590462453829]), 0.0625)
+    trajectory_printer = TrajectoryPrinter(map_path, '.png', centerline_path, 3.243796630159458)
     # trajectory_printer.plot_trajectory('history.npy', matplotlib=True) 
     trajectory_printer.plot_curvature_with_delta('history.npy', tolerance=0.7, verbose=True, optimize=True) 
