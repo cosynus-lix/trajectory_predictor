@@ -1,5 +1,7 @@
 import queue
 
+import yaml
+from yaml.loader import SafeLoader
 import cv2
 import numpy as np
 import networkx as nx
@@ -7,8 +9,9 @@ from sklearn.cluster import KMeans
 from skimage.morphology import medial_axis
 
 from .PixelGraph import PixelGraph
+from .CoordinateTransform import CoordinateTransform
 
-def image_to_centerline(image_path, track_thresh=205):
+def image_to_centerline(image_path, image_extension='.pgm', track_thresh=205):
     """
     Converts an image to a sequence of points representing the centerline
 
@@ -18,7 +21,7 @@ def image_to_centerline(image_path, track_thresh=205):
     """
     
     # Reading image
-    img = cv2.imread('./maps/gmapping/new_map.pgm', cv2.IMREAD_GRAYSCALE)
+    img = cv2.imread(f'{image_path}{image_extension}', cv2.IMREAD_GRAYSCALE)
     _, thresh_img = cv2.threshold(img, track_thresh, 255, cv2.THRESH_BINARY)
     axis = medial_axis(thresh_img)
     
@@ -31,6 +34,22 @@ def image_to_centerline(image_path, track_thresh=205):
 
     return centerline
 
+def save_centerline_points_metric(centerline, map_path, map_extension):
+    """
+    Saves the centerline points in a csv in the metric reference frame
+    """
+
+    centerline_path = f'{map_path}.csv'
+    image = cv2.imread(f'{map_path}{map_extension}', cv2.IMREAD_GRAYSCALE)
+    with open(f'{map_path}.yaml') as f:
+        map_info = yaml.load(f, Loader=SafeLoader)
+    
+    centerline_pixel_coords = np.array([CoordinateTransform.pixel_coords_from_flattened_index(point, image.shape) 
+                                        for point in centerline])
+    centerline_metric_coords = np.array([CoordinateTransform.image_to_metric(coord, np.array(map_info['origin'][:2]),
+                                        image.shape, map_info['resolution']) for coord in centerline_pixel_coords])
+
+    np.savetxt(centerline_path, centerline_metric_coords, delimiter=',')
 
 def pixel_graph_to_spanning_tree_and_missing_links(graph: PixelGraph):
     # Initialization
