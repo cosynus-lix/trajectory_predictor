@@ -11,12 +11,87 @@ from skimage.morphology import medial_axis
 from .PixelGraph import PixelGraph
 from .CoordinateTransform import CoordinateTransform
 
+def filter_track_on_image(image_path, image_extension='.pgm'):
+    """
+    Converts an image to a sequence of points representing the centerline
+
+    Args:
+        image_path (str): path to the image to be converted
+        image_extension (str): extension of the image
+        track_thresh (int): threshold for separating track from non-track (track should be white)
+    """
+
+    # Reading image
+    img = cv2.imread(f'{image_path}{image_extension}', cv2.IMREAD_GRAYSCALE)
+
+    # Converting to pixel graph and getting spanning tree and missing links
+    graph = PixelGraph(img == 0, radius=3)
+    
+    # Getting all bigger loops in graph
+    loops = find_big_loops(graph)
+    filled_loops = [path_to_filled_image(loop, img.shape) for loop in loops]
+    filled_loops = simplify_images(filled_loops)
+
+    if len(filled_loops) == 2:
+        filled_loops = sorted(filled_loops, key=lambda x: np.sum(x != 0))
+        return filled_loops[1]-filled_loops[0]
+    else:
+        raise Exception('Failed to find the two loops defining the track')
+    
+def simplify_images(images):
+    """
+    Simplifies a list of images merging similar images
+    """
+
+    reduced_images_list = []
+    for image in images:
+        found_close_image = False
+        for i in range(len(reduced_images_list)):
+            image_set_item = reduced_images_list[i]
+            if np.sum(image != image_set_item) < 1000:
+                found_close_image = True
+                image[image != image_set_item] = 0
+                reduced_images_list[i] = image
+        if not found_close_image:
+            reduced_images_list.append(image)
+    return reduced_images_list
+
+def path_to_filled_image(loop, shape):
+    img = np.zeros(shape)
+    two_d_indexes = np.unravel_index(loop, shape)
+    arr = np.array(two_d_indexes).T
+    arr[:, 0], arr[:, 1] = arr[:, 1].copy(), arr[:, 0].copy()
+    cv2.fillPoly(img, pts=[arr], color=255)
+    return img
+
+def find_big_loops(graph, thresh=100):
+    """
+    Finds spanning trees in a graph
+    """
+    nodes = graph.get_nodes()
+    visited_nodes = set()
+
+    loops = []
+
+    for node in nodes:
+        if node in visited_nodes:
+            continue
+        pg, links = pixel_graph_to_spanning_tree_and_missing_links(graph, node)
+        if len(pg.nodes) < thresh:
+            continue
+        [visited_nodes.add(node) for node in pg.nodes]
+
+        path = missing_links_and_tree_to_bigger_loop(links, pg)
+        loops.append(path)
+    return loops
+
 def image_to_centerline(image_path, image_extension='.pgm', track_thresh=205):
     """
     Converts an image to a sequence of points representing the centerline
 
     Args:
         image_path (str): path to the image to be converted
+        image_extension (str): extension of the image
         track_thresh (int): threshold for separating track from non-track (track should be white)
     """
     
@@ -30,7 +105,7 @@ def image_to_centerline(image_path, image_extension='.pgm', track_thresh=205):
     tree, missing_links = pixel_graph_to_spanning_tree_and_missing_links(graph)
 
     # Getting centerline
-    centerline  = missing_links_and_tree_to_centerline(missing_links, tree)
+    centerline  = missing_links_and_tree_to_bigger_loop(missing_links, tree)
 
     return centerline
 
@@ -51,11 +126,12 @@ def save_centerline_points_metric(centerline, map_path, map_extension):
 
     np.savetxt(centerline_path, centerline_metric_coords, delimiter=',')
 
-def pixel_graph_to_spanning_tree_and_missing_links(graph: PixelGraph):
+def pixel_graph_to_spanning_tree_and_missing_links(graph: PixelGraph, first=None):
     # Initialization
     parents = {}
     q = queue.Queue()
-    first = graph.get_nonzero_node()
+    if first is None:
+        first = graph.get_nonzero_node()
     q.put(first)
     visited = set({first})
     missing_links = []
@@ -77,7 +153,7 @@ def pixel_graph_to_spanning_tree_and_missing_links(graph: PixelGraph):
 
     return G, missing_links
 
-def missing_links_and_tree_to_centerline(missing_links, tree):
+def missing_links_and_tree_to_bigger_loop(missing_links, tree):
     # Get weights of rings closed by missing links
     path_weight_and_missing_links = []
     for missing_link in missing_links:
@@ -96,7 +172,7 @@ def missing_links_and_tree_to_centerline(missing_links, tree):
     selection_to_use = selections[max_average_selection_index]
 
     max_cluster_indexes = np.array(list(range(len(path_weight_and_missing_links))))[selection_to_use]
-    trackline_weights_index = max_cluster_indexes[np.argmin(X[max_cluster_indexes])]
+    trackline_weights_index = max_cluster_indexes[np.argmax(X[max_cluster_indexes])]
     _, trackline_link = path_weight_and_missing_links[trackline_weights_index]
 
     _, path = nx.single_source_dijkstra(tree, trackline_link[0], trackline_link[1])
