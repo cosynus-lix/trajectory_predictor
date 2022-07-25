@@ -1,2 +1,4 @@
 *.npy
 *.pickle
+*.png
+*.pgf
