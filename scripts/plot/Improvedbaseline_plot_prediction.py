@@ -16,12 +16,18 @@ if __name__ == "__main__":
     past = 30
     epochs = 100
     dataset = Dataset()
-    #dataset.load_data('../../centerline/map0.csv', '../../runs/run0/spline.npy', '../../runs/run0/history.npy')
+    dataset.load_data('../../centerline/map0.csv', '../../runs/run0/spline.npy', '../../runs/run0/history.npy')
+    dataset.add_data('../../centerline/map1.csv', '../../runs/run1/spline.npy', '../../runs/run1/history.npy')
+    dataset.add_data('../../centerline/map2.csv', '../../runs/run2/spline.npy', '../../runs/run2/history.npy')
+    dataset.add_data('../../centerline/map3.csv', '../../runs/run3/spline.npy', '../../runs/run3/history.npy')
+    dataset.add_data('../../centerline/map4.csv', '../../runs/run4/spline.npy', '../../runs/run4/history.npy')
+    dataset.add_data('../../centerline/map5.csv', '../../runs/run6/spline.npy', '../../runs/run6/history.npy')
+    dataset.add_data('../../centerline/map6.csv', '../../runs/run6/spline.npy', '../../runs/run6/history.npy')
     model = Improved_BaselineModel(past,64)
     
-    #model.train(dataset,epochs,plot = True)    
-    #model.save('../../experiments/Feedforward_model/modeltimeseries')
-    model.load('../../experiments/Baseline_model/Improved_baseline/Time_series_model.pt')
+    # model.train(dataset,epochs,plot = True)    
+    # model.save('../../experiments/Baseline_model/Improved_baseline')
+    model.load('../../experiments/Baseline_model/Improved_baseline/Improved_baseline_test.pt')
 
     init = 2970
     len = 3001
@@ -41,7 +47,7 @@ if __name__ == "__main__":
     # Setting up the printer
     map_path = '../../maps/map7'
     centerline_path = '../../centerline/map7.csv'
-    trajectory_printer = TrajectoryPrinter(map_path, '.png', centerline_path, 3.243796630159458, np.array([-78.21853769831466,-44.37590462453829]), 0.0625)
+    trajectory_printer = TrajectoryPrinter(map_path, '.png', centerline_path, 3.243796630159458)
     trajectory = np.array([dataset2.get_progress(), dataset2.get_delta()]).T
 
     # Converting delta progress to progress in predicion

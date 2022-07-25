@@ -10,7 +10,7 @@ from trajectory_predictor.model.Improved_baseline.Improved_baseline_model import
 from trajectory_predictor.utils.SplineOptimizer import SplineOptimizer
 
 
-        # Load model1 for scenario 1 and 2
+# Load model1 for scenario 1 and 2
 
 past = 300
 horizon = 1000

@@ -39,6 +39,7 @@ from matplotlib.collections import PatchCollection
 import argparse
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--base_path', type=str, default='../../')
 parser.add_argument('--seed', type=int, default=123, help='Seed for the numpy rng.')
 parser.add_argument('--num_maps', type=int, default=1, help='Number of maps to generate.')
 parser.add_argument('--name',type=str,default=None,help='Name of the map files')
@@ -46,7 +47,7 @@ args = parser.parse_args()
 
 np.random.seed(args.seed)
 
-BASE_PATH = '../../'
+BASE_PATH = args.base_path
 
 if not os.path.exists(f'{BASE_PATH}maps'):
     print('Creating maps/ directory.')
