@@ -21,7 +21,7 @@ if __name__ == "__main__":
     map_path = '../maps/map0'
     centerline_path = '../centerline/map0.csv'
 
-    trajectory_printer = TrajectoryPrinter(map_path, '.png', centerline_path, 3.243796630159458, np.array([-78.21853769831466,-44.37590462453829]), 0.0625)
+    trajectory_printer = TrajectoryPrinter(map_path, '.png', centerline_path, 3.243796630159458)
     simulator.run(printer=trajectory_printer)
     
     simulator.save_history('../runs/run0')

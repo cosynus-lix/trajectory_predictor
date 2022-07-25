@@ -5,6 +5,7 @@ import yaml
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+import cv2
 import shapely.geometry as shp
 
 from .SplineOptimizer import SplineOptimizer
@@ -22,7 +23,11 @@ if LATEX_OUTPUT:
     })
 
 class TrajectoryPrinter:
-    def __init__(self, map_path, map_ext, centerline_path, track_width, track_origin, track_scale):
+    def __init__(self, map_path, map_ext, centerline_path, track_width):
+        # Read black and white image
+        map_image_path = f'{map_path}{map_ext}'
+        self.map = cv2.imread(map_image_path, cv2.IMREAD_GRAYSCALE)
+
         # Read configuration yaml file for the map
         map_config_path = f'{map_path}.yaml'
         with open(map_config_path, 'r') as f:
@@ -32,8 +37,8 @@ class TrajectoryPrinter:
         self.centerline = np.loadtxt(centerline_path, delimiter=',')
         self.track_ring = shp.LinearRing(self.centerline)
         track_poly = shp.Polygon(self.centerline)
-        self.track_origin = track_origin
-        self.track_scale = track_scale
+        self.track_origin = self.map_config['origin'][:2]
+        self.track_scale = self.map_config['resolution']
         self.half_width = track_width / 2
         track_xy_offset_in = track_poly.buffer(self.half_width)
         track_xy_offset_out = track_poly.buffer(-self.half_width)
@@ -86,6 +91,26 @@ class TrajectoryPrinter:
         # Remove x and y axis
         ax.set_xticks([])
         ax.set_yticks([])
+
+    def _print_over_map_image(self, displaced_points, origin, resolution):
+        # Covert map to RGB
+        map_rgb = cv2.cvtColor(self.map, cv2.COLOR_GRAY2RGB)
+        output_shape = (map_rgb.shape[0], map_rgb.shape[1])
+
+        for point in displaced_points:
+            # Radius of circles which compose the trajectory
+            radius = 1
+            
+            # Blue color in BGR (magenta)
+            color = (255, 0, 255)
+            thickness = 1
+
+            map_rgb = cv2.circle(map_rgb, 
+                                CoordinateTransform.metric_to_image(point, origin, output_shape, resolution),
+                                radius, color, thickness)
+
+
+        cv2.imwrite('./output.png', map_rgb)
     
     def plot_curvature_with_delta(self, trajectory_path, tolerance=0.5, verbose=False, optimize=True):
         """
@@ -135,7 +160,7 @@ class TrajectoryPrinter:
             plt.savefig('./trajectory_evaluation.png')
         plt.show()
 
-    def plot_trajectory(self, trajectory_path):
+    def plot_trajectory(self, trajectory_path, matplotlib=True):
         """
         Produces a plot which shows the trajectory
         
@@ -146,9 +171,13 @@ class TrajectoryPrinter:
 
         displaced_points = self._add_to_centerline(self.progress, self.deltas)
 
-        _, ax = plt.subplots()
-        self._print_map_matplotlib(ax, displaced_points)
-        plt.savefig('./trajectory.png')
+        if matplotlib:
+            _, ax = plt.subplots()
+            self._print_map_matplotlib(ax, displaced_points)
+            plt.savefig('./trajectory.png')
+        else:
+            args = (self.track_origin, self.track_scale)
+            self._print_over_map_image(displaced_points, *args)
 
     def plot_trajectory_with_prediction(self,init, trajectory,prediction,name = 'name'):
 
@@ -193,6 +222,6 @@ if __name__ == '__main__':
     centerline_path = '../track_generator/centerline/map0.csv'
     trajectory = './history.npy'
 
-    trajectory_printer = TrajectoryPrinter(map_path, '.png', centerline_path, 3.243796630159458, np.array([-78.21853769831466,-44.37590462453829]), 0.0625)
+    trajectory_printer = TrajectoryPrinter(map_path, '.png', centerline_path, 3.243796630159458)
     # trajectory_printer.plot_trajectory('history.npy', matplotlib=True) 
     trajectory_printer.plot_curvature_with_delta('history.npy', tolerance=0.7, verbose=True, optimize=True) 

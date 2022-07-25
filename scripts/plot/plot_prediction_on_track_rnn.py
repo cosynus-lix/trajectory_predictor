@@ -26,9 +26,9 @@ if __name__ == "__main__":
     prediction = model.predict(series, curvatures, 800)
 
     # Setting up the printer
-    map_path = '../../maps/map0'
-    centerline_path = '../../centerline/map0.csv'
-    trajectory_printer = TrajectoryPrinter(map_path, '.png', centerline_path, 3.243796630159458, np.array([-78.21853769831466,-44.37590462453829]), 0.0625)
+    map_path = '../maps/map0'
+    centerline_path = '../centerline/map0.csv'
+    trajectory_printer = TrajectoryPrinter(map_path, '.png', centerline_path, 3.243796630159458)
     trajectory = np.array([dataset.get_progress(), dataset.get_delta()]).T
 
     # Converting delta progress to progress in predicion

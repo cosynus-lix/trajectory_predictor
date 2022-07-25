@@ -1,9 +1,7 @@
-from math import fabs
 from re import T
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
-import pandas as pd
 from trajectory_predictor.dataset.Dataset import Dataset
 from trajectory_predictor.model.Baseline.Baselinemodel import BaselineModel
 from trajectory_predictor.model.Baseline.Baseline_preprocessing import Baselinepreprocessing
@@ -31,7 +29,7 @@ def main():
     #model.predict(dataset,3200,0,plot=True)
     model = Improved_BaselineModel(past,64)
     model.train(dataset,epochs,True)
-    model.save('../experiments/Feedforward_model/modeltimeseries')
+    # model.save('../experiments/Feedforward_model/modeltimeseries')
     #model.load('../experiments/Feedforward_model/modeltimeseries/Time_series_model.pt')
     #print(model.__sizeof__())
     #model.predict(dataset,30,10)
