@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from SplineOptimizer import SplineOptimizer
 
 def main():
-    centerline = np.loadtxt('../track_generator/centerline/map0.csv', delimiter=',')
+    centerline = np.loadtxt('../track_generator/centerline/map.csv', delimiter=',')
     optimizer = SplineOptimizer(centerline)
     optimizer.load_spline()
 
@@ -22,7 +22,7 @@ def main():
     output = np.array([delta_progress, deltas[:-1], curvatures[:-1]]).T
 
     # Save output to file
-    np.save('output.npy', output)
+    np.save('output1.npy', output)
     print(output.shape)
     # exit()
     plt.plot(progresses, trajectory[:, 1], '-')
