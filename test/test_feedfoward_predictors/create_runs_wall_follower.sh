@@ -15,7 +15,7 @@ do
     mv ../centerline/map${i:0:1}.csv ../centerline/map${i:1:1}.csv
 done
 
-for i in {0..0}
+for i in {0..7}
 do
     python ../scripts/trajectory_generator_wall_follower.py --map_index $i --speed 3
 done
