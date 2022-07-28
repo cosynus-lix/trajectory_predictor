@@ -121,10 +121,10 @@ class SplineOptimizer:
 
         self.spline_s_discretization = np.linspace(0, 1, N_POINTS_SPLINE_DISCRETIZATION)
         spline_points = self.cs(self.spline_s_discretization)
-        spline_points_ring = shp.LinearRing(spline_points)
+        self.spline_discretization_ring = shp.LinearRing(spline_points)
         self.spline_progress_discretization = []
         for p in spline_points:
-            self.spline_progress_discretization.append(spline_points_ring.project(shp.Point(p[0], p[1]), normalized=True))
+            self.spline_progress_discretization.append(self.spline_discretization_ring.project(shp.Point(p[0], p[1]), normalized=True))
         self.spline_progress_discretization = np.array(self.spline_progress_discretization)
 
     def dump_spline_and_points(self, path='spline.pickle'):
@@ -161,3 +161,24 @@ class SplineOptimizer:
         Maps a progress in [0, 1] on the road to a point on the spline
         """
         return self.cs(self.map_progress_to_s(progress))
+
+    def euclidean_to_curvilinear(self, point):
+        """
+        Converts euclidean coordinates to curvilinear system based on the spline
+
+        point: np array with 2D coordinates on the map coordinate system
+        return: np array [progress, delta] on curvilinear system
+        """
+
+        delta_progress = 0.001
+        sp_point = shp.Point(point[0], point[1])
+        ring_progress = self.spline_discretization_ring.project(sp_point, normalized=True)
+
+        projection = self.spline_discretization_ring.interpolate(ring_progress, normalized=True)
+        projection_bef = self.spline_discretization_ring.interpolate(ring_progress-delta_progress, normalized=True)
+
+        ccw = shp.LinearRing([projection_bef, projection, sp_point]).is_ccw
+        delta = projection.distance(sp_point)
+        if ccw:
+            delta = -projection.distance(sp_point)
+        return np.array([ring_progress, delta])
