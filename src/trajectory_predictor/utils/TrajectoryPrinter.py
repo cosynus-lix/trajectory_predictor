@@ -1,3 +1,5 @@
+from cProfile import label
+from dis import dis
 import yaml
 
 import numpy as np
@@ -67,19 +69,24 @@ class TrajectoryPrinter:
         
         return displaced_points
 
-    def _print_map_matplotlib(self, ax, displaced_points, title='Map with trajectory (magenta)', show_centerline=False, color='m'):
+    def _print_map_matplotlib(self, ax, displaced_points, title='Map with trajectory, speed = 6', show_centerline=True, color='m',label = 'l',points = False):
         ax.plot(self.inner[:,0], self.inner[:,1], 'k')
         ax.plot(self.outer[:,0], self.outer[:,1], 'k')
-
-        ax.plot(displaced_points[:,0], displaced_points[:,1], color)
-
+        ax.plot(displaced_points[:,0], displaced_points[:,1], color,label = label)
+        if points:
+            for k in range(displaced_points.shape[0]):
+                if (k%99 == 0):
+                    if (color == 'm'):
+                        ax.plot(displaced_points[k,0],displaced_points[k,1],'mo')
+                    else:
+                        ax.plot(displaced_points[k,0],displaced_points[k,1],'bo')
         if show_centerline:
             progresses = np.linspace(0, 1-0.0001, 1000)
             points_over_centerline = self._add_to_centerline(progresses, np.zeros(len(progresses)))
-            ax.plot(points_over_centerline[:,0], points_over_centerline[:,1], 'r-.', alpha=0.5)
+            ax.plot(points_over_centerline[:,0], points_over_centerline[:,1], ':',color = 'grey', alpha=0.5,label = 'center line')
 
         # Plot config
-        ax.set_title(title)
+        ax.set_title(title,fontsize = 20)
         ax.set_aspect('equal')
         # Remove x and y axis
         ax.set_xticks([])
@@ -172,28 +179,42 @@ class TrajectoryPrinter:
             args = (self.track_origin, self.track_scale)
             self._print_over_map_image(displaced_points, *args)
 
-    def plot_trajectory_with_prediction(self, trajectory, prediction, color='b'):
+    def plot_trajectory_with_prediction(self,init, trajectory,prediction,name = 'name'):
+
         progress_trajectory = trajectory[:, 0]
         deltas_trajectory = trajectory[:, 1]
         progress_prediction = prediction[:, 0]
         deltas_prediction = prediction[:, 1]
-
+        progress_trajectory_2 = progress_trajectory[init:]
+        progress_trajectory_2 = progress_trajectory_2[:progress_prediction.shape[0]]
+        deltas_trajectory_2 = deltas_trajectory[init:]
+        deltas_trajectory_2 = deltas_trajectory_2[:deltas_prediction.shape[0]]
+        print(deltas_trajectory_2.shape)
+        print(progress_prediction.shape)
         displaced_points_trajectory = self._add_to_centerline(progress_trajectory, deltas_trajectory)
+        displaced_points_trajectory_2 = self._add_to_centerline(progress_trajectory_2, deltas_trajectory_2)
         displaced_points_prediction = self._add_to_centerline(progress_prediction, deltas_prediction)
-
+        
         _, ax = plt.subplots()
-        self._print_map_matplotlib(ax, displaced_points_trajectory)
-        self._print_map_matplotlib(ax, displaced_points_prediction, color='b')
-        plt.savefig('./trajectory.png')
+        self._print_map_matplotlib(ax, displaced_points_trajectory,color ='r',label ='True trajectory ')
+        self._print_map_matplotlib(ax, displaced_points_prediction,show_centerline= False,color ='b',label = 'Predicted trajectory',points=True)
+        self._print_map_matplotlib(ax,displaced_points_trajectory_2,color = 'm',label = 'True trajectory on zone',points=True)
+        plt.legend(fontsize=20)
+        plt.savefig('./'+ name +'.png',dpi = 600)
+        plt.show()
 
-    def plot_trajectory_frame(self, trajectory, pause_delay=0.05):
+    def plot_trajectory_frame(self, trajectory, pause_delay=0.05,display=False):
         progress = trajectory[:, 0]
         deltas = trajectory[:, 1]
 
         displaced_points = self._add_to_centerline(progress, deltas)
         _, ax = plt.subplots()
         self._print_map_matplotlib(ax, displaced_points)
-        plt.pause(pause_delay)
+
+        if display:
+            plt.pause(pause_delay)
+        else:
+            plt.savefig('./trajectory.png')
 
 
 if __name__ == '__main__':

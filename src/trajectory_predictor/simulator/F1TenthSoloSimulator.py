@@ -66,7 +66,7 @@ class F1TenthSoloSimulator(Simulator):
             step_i += 1
 
         printer.plot_trajectory_frame(current_trajectory)
-        plt.waitforbuttonpress()
+        #plt.waitforbuttonpress()
 
     def save_history(self, path):
         # Create path if it doesn't exist

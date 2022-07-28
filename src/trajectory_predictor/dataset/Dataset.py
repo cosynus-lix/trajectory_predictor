@@ -6,6 +6,7 @@ class Dataset:
     def __init__(self):
         self.data_np = None
         self.optimizer = None
+        self.optimizer2 = None
 
     def history_to_series(self, history):
         if self.optimizer is None:
@@ -25,6 +26,14 @@ class Dataset:
         trajectory = np.load(history_path)
 
         self.data_np = self.history_to_series(trajectory)
+
+    def add_data(self, centerline_path, spline_path,history_path):
+        centerline = np.loadtxt(centerline_path, delimiter=',')
+        self.optimizer2 = SplineOptimizer(centerline)
+        self.optimizer2.load_spline(filename=spline_path)
+        trajectory = np.load(history_path)
+
+        self.data_np = np.vstack((self.data_np,self.history_to_series(trajectory)))
 
     def dump(self, filename):
         np.save(filename, self.data_np)
