@@ -133,16 +133,16 @@ class Improved_BaselineModel(Model):
             plt.plot(dataset.y_test[:,0],color = 'blue',label = 'Reality')
             plt.legend()
             plt.subplots_adjust(wspace=None,hspace=None)
-            #plt.savefig('./prediction100epoch.png')
+            plt.savefig('./trainingmodel2.png')
             plt.show()
         
     
-    def save(self, path):
+    def save(self, path, name):
         if not os.path.exists(path):
             os.makedirs(path)
             if not os.path.exists(path):
                 raise FileNotFoundError
-        model_name = 'Improved_baseline_3.pt'
+        model_name = name+'.pt'
         
         torch.save(self.model.state_dict(),f'{path}/{model_name}')
 

@@ -69,7 +69,7 @@ class TrajectoryPrinter:
         
         return displaced_points
 
-    def _print_map_matplotlib(self, ax, displaced_points, title='Map with trajectory, speed = 6', show_centerline=True, color='m',label = 'l',points = False):
+    def _print_map_matplotlib(self, ax, displaced_points, title='Map with trajectory', show_centerline=True, color='m',label = 'l',points = False):
         ax.plot(self.inner[:,0], self.inner[:,1], 'k')
         ax.plot(self.outer[:,0], self.outer[:,1], 'k')
         ax.plot(displaced_points[:,0], displaced_points[:,1], color,label = label)
@@ -189,8 +189,6 @@ class TrajectoryPrinter:
         progress_trajectory_2 = progress_trajectory_2[:progress_prediction.shape[0]]
         deltas_trajectory_2 = deltas_trajectory[init:]
         deltas_trajectory_2 = deltas_trajectory_2[:deltas_prediction.shape[0]]
-        print(deltas_trajectory_2.shape)
-        print(progress_prediction.shape)
         displaced_points_trajectory = self._add_to_centerline(progress_trajectory, deltas_trajectory)
         displaced_points_trajectory_2 = self._add_to_centerline(progress_trajectory_2, deltas_trajectory_2)
         displaced_points_prediction = self._add_to_centerline(progress_prediction, deltas_prediction)
@@ -198,7 +196,7 @@ class TrajectoryPrinter:
         _, ax = plt.subplots()
         self._print_map_matplotlib(ax, displaced_points_trajectory,color ='r',label ='True trajectory ')
         self._print_map_matplotlib(ax, displaced_points_prediction,show_centerline= False,color ='b',label = 'Predicted trajectory',points=True)
-        self._print_map_matplotlib(ax,displaced_points_trajectory_2,color = 'm',label = 'True trajectory on zone',points=True)
+        self._print_map_matplotlib(ax,displaced_points_trajectory_2,show_centerline=False,color = 'm',label = 'True trajectory on zone',points=True)
         plt.legend(fontsize=20)
         plt.savefig('./'+ name +'.png',dpi = 600)
         plt.show()

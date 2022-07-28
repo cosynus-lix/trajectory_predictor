@@ -145,6 +145,9 @@ class Baselinepreprocessing():
         
 
     def extractserieforpred(self,len,begin):
+        if(begin<0):
+            print('Begin too early')
+            raise ValueError
         if (len+begin+self.past>self.X.shape[0]):
             print('Index et Begin incompatible')
             raise ValueError
