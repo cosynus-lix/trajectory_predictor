@@ -9,10 +9,12 @@ from trajectory_predictor.utils.TrajectoryPrinter import TrajectoryPrinter
 
 if __name__ == "__main__":
     ###############################################
-    # Generates a trajectory using wall following #
+    # Print Model 2 prediction #
     ###############################################
 
-        # Load model
+
+        #Generating model - Scenario 1
+
     past = 30
     epochs = 100
     dataset = Dataset()
@@ -25,12 +27,12 @@ if __name__ == "__main__":
     dataset.add_data('../../centerline/map6.csv', '../../runs/run6/spline.npy', '../../runs/run6/history.npy')
     model = Improved_BaselineModel(past,64)
     
-    # model.train(dataset,epochs,plot = True)    
-    # model.save('../../experiments/Baseline_model/Improved_baseline')
-    model.load('../../experiments/Baseline_model/Improved_baseline/Improved_baseline_test.pt')
+    #model.train(dataset,epochs,plot = True)    
+    #model.save('../../experiments/Baseline_model/Improved_baseline','Improved_Baseline_model_scenario1')
+    model.load('../../experiments/Baseline_model/Improved_baseline/Improved_Baseline_model_scenario1.pt')
 
     init = 2970
-    len = 3001
+    len = 10
     # Get series to predict
     dataset2=Dataset()
     dataset2.load_data('../../centerline/map7.csv', '../../runs/run7/spline.npy', '../../runs/run7/history.npy')
@@ -53,9 +55,9 @@ if __name__ == "__main__":
     # Converting delta progress to progress in predicion
     prediction[:, 0] = np.cumsum(prediction[:, 0]) + trajectory[point, 0]
 
-    # prediction[:, 0] = trajectory[point:point+800, 0]
+        #final print
 
-    trajectory_printer.plot_trajectory_with_prediction(init+past,trajectory, prediction)
+    trajectory_printer.plot_trajectory_with_prediction(init+past,trajectory, prediction,name='Scenario 1 - Iterative Model')
     print(prediction.shape)
     print(trajectory.shape)
     print(f'predicted total progress = {prediction[len-1,0]}\ntrue total progress = {trajectory[init+len+30,0]}')

@@ -24,7 +24,7 @@ if __name__ == "__main__":
     optim = SplineOptimizer(track)
     optim.sample_spline_by_tolerance(0.1, optimize=False, verbose=False)
     simulator = F1TenthSoloSimulator(f'../maps/map{map_index}', controller, optim)
-
+    vitesse=str(vehicle_speed)
     # Running simulation
     map_path = f'../maps/map{map_index}'
     centerline_path = f'../centerline/map{map_index}.csv'
@@ -32,4 +32,4 @@ if __name__ == "__main__":
     trajectory_printer = TrajectoryPrinter(map_path, '.png', centerline_path, 3.243796630159458)
     simulator.run(printer=trajectory_printer)
     
-    simulator.save_history(f'../runs/run{map_index}')
+    simulator.save_history(f'../runs/run{map_index}speed{vitesse}')
