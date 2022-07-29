@@ -27,6 +27,7 @@ class F1TenthSoloSimulator(Simulator):
             done = True
         
         # Record history
+        # TODO replace with custom function on the spline itself
         track_ring = self._spline_optimizer.get_track_ring()
         current_position = shp.Point(obs['poses_x'][0], obs['poses_y'][0])
         self._progress = track_ring.project(current_position, normalized=True)
