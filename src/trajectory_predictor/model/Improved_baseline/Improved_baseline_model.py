@@ -166,7 +166,7 @@ class Improved_BaselineModel(Model):
         #print(f'somme initiale = {curvature[0]}')
 
         for k in range (len-1):
-            x = dataset.create_loader(init+k,False,all_pred[k-1],curvature)
+            x = dataset.create_loader(init+k,False,all_pred[k-1],curvature, x)
             pred = self.model(torch.from_numpy(x)).detach().numpy() 
             Deltas = pred[0][0]*dataset.std_Deltas+dataset.mean_Deltas
             delta = pred[0][1]*dataset.std_delta+dataset.mean_delta

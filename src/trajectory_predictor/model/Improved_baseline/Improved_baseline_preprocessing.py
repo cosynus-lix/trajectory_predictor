@@ -160,7 +160,7 @@ class Improved_Baselinepreprocessing():
         #print(f'X[:,0] inversé = {scaler0.inverse_transform(X[:,0].reshape(-1,1))}\n X[0] non traité = {data_not_scaled[:,0]}\n Y[:,0] inversé = {scaler0.inverse_transform(y[:,0].reshape(-1,1))}')
         
 
-    def create_loader(self,point = 30,init = False,previous_pred = [0,0],curvature=0):
+    def create_loader(self,point = 30,init = False,previous_pred = [0,0],curvature=0, x=0):
         if (point<self.past):
             print(f'point must be superior to {self.past}')
             raise ValueError
@@ -174,7 +174,6 @@ class Improved_Baselinepreprocessing():
             #print(x.shape)
             #print(y)
         else:
-            x = self.X[point - self.past]
             x = x[3:]
             x = np.concatenate((x,previous_pred))
             x = np.append(x,curvature[1])
