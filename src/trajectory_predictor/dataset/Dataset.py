@@ -1,6 +1,7 @@
 import numpy as np
 
 from ..utils.SplineOptimizer import SplineOptimizer
+from ..trajectory.Trajectory import Trajectory
 
 class Dataset:
     def __init__(self):
@@ -9,6 +10,7 @@ class Dataset:
         self.optimizer2 = None
 
     def history_to_series(self, history):
+        # TODO: Maybe rermove?
         if self.optimizer is None:
             raise Exception('SplineOptimizer is not initialized')
         progresses = history[:, 0]
@@ -19,13 +21,13 @@ class Dataset:
 
         return np.array([delta_progress, deltas[:-1], curvatures[:-1]]).T
     
-    def load_data(self, centerline_path, spline_path, history_path):
+    def load_data(self, centerline_path, spline_path, history_path, timestep=0.01):
         centerline = np.loadtxt(centerline_path, delimiter=',')
         self.optimizer = SplineOptimizer(centerline)
         self.optimizer.load_spline(filename=spline_path)
-        trajectory = np.load(history_path)
-
-        self.data_np = self.history_to_series(trajectory)
+        history = np.load(history_path)
+        self.__trajectory = Trajectory(history, self.optimizer, timestep)
+        self.data_np = self.__trajectory.as_dt()
 
     def add_data(self, centerline_path, spline_path,history_path):
         centerline = np.loadtxt(centerline_path, delimiter=',')
@@ -52,3 +54,10 @@ class Dataset:
 
     def to_np(self):
         return self.data_np
+
+    def get_trajectory(self, start=0, end=1):
+        def progress_to_index(progress):
+            return int(progress*len(self.data_np))
+        start, end = progress_to_index(start), progress_to_index(end)
+        history = self.__trajectory.get_history()
+        return Trajectory(history[start:end], self.optimizer, self.__trajectory.get_dt())

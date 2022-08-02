@@ -8,6 +8,8 @@ from darts import TimeSeries
 from darts.models import RNNModel
 from darts.dataprocessing.transformers import Scaler
 
+from ..trajectory.Trajectory import Trajectory
+from .PastPredictor.MeanPredictor import MeanPredictor
 from .Model import Model
 
 class DartsRNNModel(Model):
@@ -37,11 +39,17 @@ class DartsRNNModel(Model):
                     epochs=epochs, 
                     verbose=True)
 
-    def predict(self, series, curvatures, horizon=10):
+    def predict(self, trajectory: Trajectory, horizon=10):
         """
-        series: time series containing (delta_progress, deltas)
-        curvatures: all curavetures from the trajectory (beggining at 0) + future
+        trajectory: trajectory containing (delta_progress, deltas) 
         """
+        predictor = MeanPredictor()
+        series = trajectory.as_dt()
+        print(trajectory.as_dt())
+        past_curvatures = trajectory.curvatures_dt()
+        future_curvatures = trajectory.get_future_curvatures(predictor, horizon)
+        curvatures = np.concatenate((past_curvatures, future_curvatures))
+
         series = TimeSeries.from_values(series)
         future_covariates = TimeSeries.from_values(curvatures)
         series = self._trf.transform(series)
@@ -50,7 +58,8 @@ class DartsRNNModel(Model):
                               past_covariates=None,
                               future_covariates=future_covariates)
         prediction = self._trf.inverse_transform(prediction)
-        return prediction.values()
+    
+        return Trajectory.from_dt(prediction.values(), trajectory.get_optim(), trajectory.get_dt(), trajectory.get_final_progress())
 
     def save(self, path):
         if not os.path.exists(path):

@@ -1,6 +1,6 @@
 import numpy as np
 
-from trajectory_predictor.model.MeanPredictor.MeanPredictor import MeanPredictor
+from trajectory_predictor.model.PastPredictor import MeanPredictor
 from trajectory_predictor.dataset.Dataset import Dataset
 from trajectory_predictor.utils.TrajectoryPrinter import TrajectoryPrinter
 
