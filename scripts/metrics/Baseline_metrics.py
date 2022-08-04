@@ -1,7 +1,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from trajectory_predictor.dataset.Dataset import Dataset
+from trajectory_predictor.dataset.SimpleDataset import SimpleDataset
 from trajectory_predictor.utils.TrajectoryPrinter import TrajectoryPrinter
 from trajectory_predictor.model.Baseline.Baselinemodel import BaselineModel
 from trajectory_predictor.model.Baseline.Baseline_preprocessing import Baselinepreprocessing
@@ -16,7 +16,7 @@ past = 300
 horizon = 1000
 horizon1 =10
 epochs = 1
-dataset = Dataset()
+dataset = SimpleDataset()
 model = BaselineModel(past,64,horizon)
 model.load('../../experiments/Baseline_model/Baseline/Feedforward_model_scenario2.pt')
 model1 = BaselineModel(past,64,horizon1)
@@ -25,7 +25,7 @@ model1.load('../../experiments/Baseline_model/Baseline/Feedforward_model_scenari
 
 init = 3000
 # Get series to predict
-dataset=Dataset()
+dataset=SimpleDataset()
 dataset.load_data('../../centerline/map7.csv', '../../runs/run7/spline.npy', '../../runs/run7/history.npy')
 data_np = dataset.to_np()
 point = init + model.past
@@ -79,17 +79,17 @@ print(f'delta error 1.2 = {max_delta_error}, delta change 1.2= {deltachange}\n D
 ## model 2
 model2 = Improved_BaselineModel(30,64)
 model2.load('../../experiments/Baseline_model/Improved_baseline/Time_series_model.pt')
-Dataset = Dataset()
-Dataset.load_data('../../centerline/map7.csv', '../../runs/run7/spline.npy', '../../runs/run7/history.npy')
+SimpleDataset = SimpleDataset()
+SimpleDataset.load_data('../../centerline/map7.csv', '../../runs/run7/spline.npy', '../../runs/run7/history.npy')
 track = np.loadtxt('../../centerline/map7.csv', delimiter=',')
 optim = SplineOptimizer(track)
 optim.sample_spline_by_tolerance(0.1, optimize=False, verbose=False)
-data_np = Dataset.to_np()
+data_np = SimpleDataset.to_np()
 
 init2 = init+300
 len = 1000
 curvatures = data_np[:, 2]
-prediction2 = model2.predict(Dataset,init2,len,optim)
+prediction2 = model2.predict(SimpleDataset,init2,len,optim)
 prediction2[:, 0] = np.cumsum(prediction2[:, 0]) + trajectory[point, 0]
 
 max_delta_error = 0

@@ -82,6 +82,18 @@ class Trajectory:
         returns: history in the format in rows of [progress, delta]
         """
         return self.__history
+    
+    def slice_time(self, init=0, end=1):
+        """
+        Returns the trajectory sliced between init and end, in a scaled between 0 and 1 one in time units
+
+        init: initial time scaled between 0 and 1
+        end: end time scaled between 0 and 1 (bigger than init)
+        """
+        def time_progress_to_index(progress):
+            return int(progress*len(self.__history))
+        slice_history = self.__history[time_progress_to_index(init):time_progress_to_index(end)]
+        return Trajectory(slice_history, self.__optimizer, self.__timestep)
 
     def get_future_curvatures(self, predictor: PastPredictor, horizon: int):
         if not isinstance(predictor, PastPredictor):

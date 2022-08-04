@@ -2,7 +2,7 @@ from ast import Raise
 from sklearn.model_selection import train_test_split
 import torch
 from torch.utils.data import DataLoader
-from trajectory_predictor.dataset.Dataset import Dataset as ds
+from trajectory_predictor.dataset.SimpleDataset import SimpleDataset as ds
 import numpy as np
 import pandas as pd
 

@@ -3,9 +3,9 @@ from trajectory_predictor.dataset.Dataset import Dataset
 
 def main():
     dataset = Dataset()
-    dataset.load_data('../centerline/map0.csv', '../runs/run0/spline.npy', '../runs/run0/history.npy')
+    dataset.load(f'/trajectory_predictor/datasets/test_datset')
     model = DartsRNNModel()
-    model.train(dataset)
+    model.train(dataset, 10)
     model.save('../experiments/model0')
 
 if __name__ == "__main__":

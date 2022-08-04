@@ -10,7 +10,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import matplotlib.pyplot as plt
-from trajectory_predictor.dataset.Dataset import Dataset as ds
+from trajectory_predictor.dataset.SimpleDataset import SimpleDataset as ds
 ## author @pierrepeaucelle
 
 #%%

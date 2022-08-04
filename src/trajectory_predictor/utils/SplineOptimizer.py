@@ -1,3 +1,5 @@
+import uuid
+
 from scipy.interpolate import CubicSpline
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,6 +14,8 @@ class SplineOptimizer:
         self.track = track
 
         self.initialize()
+
+        self.__id = None
 
     def initialize(self):
         self.track_ring = shp.LinearRing(self.track)
@@ -36,8 +40,10 @@ class SplineOptimizer:
         def spline_and_points_from_s_values(s_values):
             points = []
             for s in s_values:
-                points.append(self.track_ring.interpolate(s, normalized=True))
-            points = np.vstack(points+[points[0]])
+                point = self.track_ring.interpolate(s, normalized=True)
+                points.append([point.x, point.y])
+            points.append([points[0][0], points[0][1]])
+            points = np.array(points)
             return CubicSpline(np.hstack((s_values, np.array([1]))), points, bc_type='periodic'), points
 
         def error_spline_true_value(spline):
@@ -70,7 +76,6 @@ class SplineOptimizer:
         spline_and_points = spline_and_points_from_s_values(s_values)
         non_optimized_max_dist, non_optimized_mean_dist = error_spline_true_value(spline_and_points[0])
         stats_bef = {'mean_dist': non_optimized_mean_dist, 'max_dist': non_optimized_max_dist}
-        
         bounds = np.array([[0, 1]]*n_points)
         stats_aft = None
         if should_optimize:
@@ -86,6 +91,9 @@ class SplineOptimizer:
         """
         Returns spline that best approximates the road
         """
+
+        # Every run generates a new centerline with new id
+        self.__id = uuid.uuid4()
 
         def get_curr_max_dist(stats_aft, stats_bef):
             if not stats_aft:
@@ -128,10 +136,10 @@ class SplineOptimizer:
         self.spline_progress_discretization = np.array(self.spline_progress_discretization)
 
     def dump_spline_and_points(self, path='spline.pickle'):
-        pickle.dump((self.cs, self.spline_points), open(path, 'wb'))
+        pickle.dump(((self.cs, self.spline_points), self.__id), open(path, 'wb'))
 
     def load_spline(self, filename='spline.pickle'):
-        spline_and_points = pickle.load(open(filename, 'rb'))
+        spline_and_points, self.__id = pickle.load(open(filename, 'rb'))
         self.set_spline_and_points(spline_and_points)
     
     def get_spline_and_points(self):
@@ -139,6 +147,11 @@ class SplineOptimizer:
 
     def get_track_ring(self):
         return self.track_ring
+
+    def get_id(self):
+        if self.__id is None:
+            raise Exception('Spline not initialized')
+        return self.__id
 
     def map_progress_to_s(self, progress):
         # TODO: maybe use dicotomy to invert this
@@ -170,6 +183,7 @@ class SplineOptimizer:
         return: np array [progress, delta] on curvilinear system
         """
 
+        # TODO add as parameter
         delta_progress = 0.001
         sp_point = shp.Point(point[0], point[1])
         ring_progress = self.spline_discretization_ring.project(sp_point, normalized=True)

@@ -29,7 +29,7 @@ class TrajectoryPrinter:
         self.map = cv2.imread(map_image_path, cv2.IMREAD_GRAYSCALE)
 
         # Read configuration yaml file for the map
-        map_config_path = f'{map_path}.yaml'
+        map_config_path = f'{map_path}/map.yaml'
         with open(map_config_path, 'r') as f:
             self.map_config = yaml.safe_load(f)
 

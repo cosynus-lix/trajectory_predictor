@@ -1,5 +1,8 @@
 #! /bin/bash
 
+""" SCRIPT DEPRACATED, NEEDS TO PLACE MAP DATA 
+DIRECLY IN THE ROOT OF THE MAPS DIRECTORY """
+
 cd ../
 
 # Creating maps

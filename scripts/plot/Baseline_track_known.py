@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from trajectory_predictor.model.Baseline.Baselinemodel import BaselineModel
-from trajectory_predictor.dataset.Dataset import Dataset
+from trajectory_predictor.dataset.SimpleDataset import SimpleDataset
 from trajectory_predictor.utils.TrajectoryPrinter import TrajectoryPrinter
 
 if __name__ == "__main__":
@@ -13,7 +13,7 @@ if __name__ == "__main__":
     past = 300
     horizon = 1000
     epochs = 100
-    dataset = Dataset()
+    dataset = SimpleDataset()
     dataset.load_data('../../centerline/map6.csv', '../../runs/run6/spline.npy', '../../runs/run6/history.npy')
     model = BaselineModel(past,64,horizon)
     #model.train(dataset,epochs,plot = True)    
@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
     value_to_test = 2700
     # Get series to predict
-    dataset2=Dataset()
+    dataset2=SimpleDataset()
     dataset2.load_data('../../centerline/map6.csv', '../../runs/run6speed1/spline.npy', '../../runs/run6speed1/history.npy')
     dat_np = dataset.to_np()
     data_np = dataset2.to_np()

@@ -2,7 +2,7 @@ from re import T
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
-from trajectory_predictor.dataset.Dataset import Dataset
+from trajectory_predictor.dataset.SimpleDataset import SimpleDataset
 from trajectory_predictor.model.Baseline.Baselinemodel import BaselineModel
 from trajectory_predictor.model.Baseline.Baseline_preprocessing import Baselinepreprocessing
 from trajectory_predictor.model.Improved_baseline.Improved_baseline_preprocessing import Improved_Baselinepreprocessing
@@ -13,7 +13,7 @@ def main():
     past = 300
     horizon = 10
     epochs = 100
-    dataset = Dataset()
+    dataset = SimpleDataset()
     dataset.load_data('../../centerline/map0.csv', '../../runs/run0/spline.npy', '../../runs/run0/history.npy')
     dataset.add_data('../../centerline/map1.csv', '../../runs/run1/spline.npy', '../../runs/run1/history.npy')
     dataset.add_data('../../centerline/map2.csv', '../../runs/run2/spline.npy', '../../runs/run2/history.npy')

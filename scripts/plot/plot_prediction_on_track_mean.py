@@ -1,7 +1,7 @@
 import numpy as np
 
 from trajectory_predictor.model.PastPredictor import MeanPredictor
-from trajectory_predictor.dataset.Dataset import Dataset
+from trajectory_predictor.dataset.SimpleDataset import SimpleDataset
 from trajectory_predictor.utils.TrajectoryPrinter import TrajectoryPrinter
 
 if __name__ == "__main__":
@@ -9,7 +9,7 @@ if __name__ == "__main__":
     model = MeanPredictor()
 
     # Load dataset
-    dataset = Dataset()
+    dataset = SimpleDataset()
     dataset.load_data('../../centerline/map0.csv', '../../runs/run0/spline.npy', '../../runs/run0/history.npy')
 
     # Get series to predict

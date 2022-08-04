@@ -20,16 +20,16 @@ if __name__ == "__main__":
     ###############################################
 
     # Initialization
+    map_path = f'/trajectory_predictor/maps/map{map_index}'
+    centerline_path = f'{map_path}/centerline.csv'
+
     controller = WallFollowerController(speed=vehicle_speed)
-    track = np.loadtxt(f'../centerline/map{map_index}.csv', delimiter=',')
+    track = np.loadtxt(centerline_path, delimiter=',')
     optim = SplineOptimizer(track)
     optim.sample_spline_by_tolerance(0.1, optimize=False, verbose=False)
-    simulator = F1TenthSoloSimulator(f'../maps/map{map_index}', controller, optim)
+    simulator = F1TenthSoloSimulator(map_path, controller, optim)
 
     # Running simulation
-    map_path = f'../maps/map{map_index}'
-    centerline_path = f'../centerline/map{map_index}.csv'
-
     trajectory_printer = TrajectoryPrinter(map_path, '.pgm', centerline_path, 3.243796630159458)
     simulator.run(printer=trajectory_printer)
     

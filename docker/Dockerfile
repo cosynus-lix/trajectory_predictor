@@ -11,12 +11,13 @@ RUN apt-get -y update \
     && add-apt-repository universe
 
 # Needed for opencv
-RUN apt-get install -y libgl1
+RUN apt-get -y install libgl1
 
-# Python
-RUN apt-get -y update \
-    && apt-get -y install python3.8-dev \
-    && apt-get -y install python3-pip
+# Install dependencies
+RUN apt-get -y update && \
+    apt-get -y install git && \
+    apt-get -y install python3.8-dev && \
+    apt-get -y install python3-pip
 
 RUN python3.8 -m pip install pip --upgrade
 
@@ -36,7 +37,13 @@ RUN source /venv/bin/activate && \
     pip install pip --upgrade && \
     pip install darts
 
+RUN git clone https://github.com/aloysiogl/f1tenth_gym.git && \
+    source /venv/bin/activate && \
+    cd f1tenth_gym && \
+    pip install -e .
+
+# Stuff that happens when you start the container
 RUN source /venv/bin/activate && \
     cd /trajectory_predictor && pip install -e .
 
-CMD source /venv/bin/activate && cd /trajectory_predictor && /bin/bash
+CMD source /venv/bin/activate && cd /trajectory_predictor/scripts && /bin/bash

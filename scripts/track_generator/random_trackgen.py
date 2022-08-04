@@ -49,14 +49,6 @@ np.random.seed(args.seed)
 
 BASE_PATH = args.base_path
 
-if not os.path.exists(f'{BASE_PATH}maps'):
-    print('Creating maps/ directory.')
-    os.makedirs(f'{BASE_PATH}maps')
-if not os.path.exists(f'{BASE_PATH}centerline'):
-    print('Creating centerline/ directory.')
-    os.makedirs(f'{BASE_PATH}centerline')
-
-
 NUM_MAPS = args.num_maps
 WIDTH = 10.0
 def create_track():
@@ -179,6 +171,10 @@ def create_track():
 
 
 def convert_track(track, track_int, track_ext, iter):
+    # create directory if needed
+    map_path = f'{BASE_PATH}maps/map{iter}'
+    if not os.path.exists(map_path):
+        os.makedirs(map_path)
 
     # converts track to image and saves the centerline as waypoints
     METERS_PER_INCH_DRAWN = 5
@@ -192,7 +188,7 @@ def convert_track(track, track_int, track_ext, iter):
     ax.set_xlim(-180, 300)
     ax.set_ylim(-300, 300)
     plt.axis('off')
-    plt.savefig(f'{BASE_PATH}maps/map' + str(iter) + '.png', dpi=DPI_OUTPUT)
+    plt.savefig(f'{map_path}/map' + '.png', dpi=DPI_OUTPUT)
 
 
     map_width, map_height = fig.canvas.get_width_height()
@@ -215,15 +211,15 @@ def convert_track(track, track_int, track_ext, iter):
     map_origin_y = -origin_y_pix*meters_per_pixel
 
     # convert image using cv2
-    cv_img = cv2.imread(f'{BASE_PATH}maps/map' + str(iter) + '.png', -1)
+    cv_img = cv2.imread(f'{map_path}/map' + '.png', -1)
     # convert to bw
     cv_img_bw = cv2.cvtColor(cv_img, cv2.COLOR_BGR2GRAY)
     # saving to img
-    cv2.imwrite(f'{BASE_PATH}maps/map' + str(iter) + '.png', cv_img_bw)
-    cv2.imwrite(f'{BASE_PATH}maps/map' + str(iter) + '.pgm', cv_img_bw)
+    cv2.imwrite(f'{map_path}/map' + '.png', cv_img_bw)
+    cv2.imwrite(f'{map_path}/map' + '.pgm', cv_img_bw)
 
     # create yaml file
-    yaml = open(f'{BASE_PATH}maps/map' + str(iter) + '.yaml', 'w')
+    yaml = open(f'{map_path}/map' + '.yaml', 'w')
     yaml.write('image: map' + str(iter) + '.pgm\n')
     yaml.write(f'resolution: {METERS_PER_INCH_DRAWN/DPI_OUTPUT}\n')
     yaml.write('origin: [' + str(map_origin_x) + ',' + str(map_origin_y) + ', 0.000000]\n')
@@ -232,7 +228,7 @@ def convert_track(track, track_int, track_ext, iter):
     plt.close()
 
     # saving track centerline as a csv in ros coords
-    waypoints_csv = open(f'{BASE_PATH}centerline/map' + str(iter) + '.csv', 'w')
+    waypoints_csv = open(f'{map_path}/centerline.csv', 'w')
     for row in xy_pixels:
         waypoints_csv.write(str(meters_per_pixel*row[0]) + ', ' + str(meters_per_pixel*row[1]) + '\n')
     waypoints_csv.close()

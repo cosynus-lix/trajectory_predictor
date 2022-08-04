@@ -5,28 +5,23 @@ from trajectory_predictor.model.DartsRNNModel import DartsRNNModel
 from trajectory_predictor.dataset.Dataset import Dataset
 
 def main():
-    # Load model
     model = DartsRNNModel()
     model.load('../../experiments/model0')
 
-    # Load dataset
     dataset = Dataset()
-    dataset.load_data('../../centerline/map0.csv', '../../runs/run0/spline.npy', '../../runs/run0/history.npy')
+    dataset.load(f'/trajectory_predictor/datasets/test_datset')
+    full_trajectory = dataset.get_trajectories()[0]
 
-    # Get series to predict
-    data_np = dataset.to_np()
-    point = 1500
-    start = 1000
-    series = data_np[1000:point, :-1]
-    curvatures = data_np[1000:, 2]
-    prediction = model.predict(series, curvatures, 800)
+    predict_progress = 0.3
+    horizon = 800
+    trajectory = full_trajectory.slice_time(end=predict_progress)
+    prediction = model.predict(trajectory, horizon)
 
-    plt.plot(data_np[:, 1])
-    plt.plot(np.arange(point, point+len(prediction)), prediction[:, 1])
+    ax = plt.gca()
+    ax.plot(full_trajectory.get_history()[:, 0], full_trajectory.get_history()[:, 1])
+    ax.plot(prediction.get_history()[:, 0], prediction.get_history()[:, 1])
 
-    # Plot to image
     plt.savefig('./prediction.png')
-    print(prediction)
 
 if __name__ == "__main__":
     main()

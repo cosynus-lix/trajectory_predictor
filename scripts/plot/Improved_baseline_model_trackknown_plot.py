@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from trajectory_predictor.model.Improved_baseline.Improved_baseline_preprocessing import Improved_Baselinepreprocessing
 from trajectory_predictor.model.Improved_baseline.Improved_baseline_model import Improved_BaselineModel
 
-from trajectory_predictor.dataset.Dataset import Dataset
+from trajectory_predictor.dataset.SimpleDataset import SimpleDataset
 from trajectory_predictor.utils.SplineOptimizer import SplineOptimizer
 from trajectory_predictor.utils.TrajectoryPrinter import TrajectoryPrinter
 
@@ -15,7 +15,7 @@ if __name__ == "__main__":
         # Load model
     past = 30
     epochs = 100
-    dataset = Dataset()
+    dataset = SimpleDataset()
     dataset.load_data('../../centerline/map6.csv', '../../runs/run6/spline.npy', '../../runs/run6/history.npy')
     model = Improved_BaselineModel(past,64)
     #model.train(dataset,epochs,plot = False)
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     init = 970
     len = 1000
     # Get series to predict
-    dataset2=Dataset()
+    dataset2=SimpleDataset()
     dataset2.load_data('../../centerline/map6.csv', '../../runs/run6speed1/spline.npy', '../../runs/run6speed1/history.npy')
     track = np.loadtxt('../../centerline/map6.csv', delimiter=',')
     optim = SplineOptimizer(track)

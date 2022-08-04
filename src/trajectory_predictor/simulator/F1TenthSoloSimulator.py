@@ -7,10 +7,12 @@ import shapely.geometry as shp
 import gym
 
 from .Simulator import Simulator
+from ..trajectory.Trajectory import Trajectory
 
 class F1TenthSoloSimulator(Simulator):
-    def __init__(self, map_path, controller, spline_optimizer):
-        env = gym.make('f110_gym:f110-v0', map=map_path, map_ext='.pgm', num_agents=1)
+    def __init__(self, map_path, controller, spline_optimizer, verbose=False, timestep=0.01):
+        env = gym.make('f110_gym:f110-v0', map=f'{map_path}/map', map_ext='.pgm', num_agents=1, timestep=timestep)
+        self._verbose = verbose
         self._controller = controller
         self._spline_optimizer = spline_optimizer
         super().__init__(env)
@@ -38,7 +40,8 @@ class F1TenthSoloSimulator(Simulator):
         if ccw:
             distance = -projection.distance(current_position)
         self._history.append([self._progress, distance])
-        print(f's: {self._progress:.2f}, delta:{distance:.2f}, k:{self._spline_optimizer.k(self._progress):.2f}')
+        if self._verbose:
+            print(f's: {self._progress:.2f}, delta:{distance:.2f}, k:{self._spline_optimizer.k(self._progress):.2f}, r:{step_reward}')
 
         # Control
         self._steer, self._speed = self._controller.get_control(obs)
@@ -55,19 +58,23 @@ class F1TenthSoloSimulator(Simulator):
 
         _, _, done, _ = self.env.reset(np.array([[0, 0, np.pi/2]]))
 
+        def print_trajectory():
+            if printer is not None:
+                current_trajectory = np.array(self._history)
+                printer.plot_trajectory_frame(current_trajectory)
+
         step_i = 0
         while not done:
             obs, done = self._step(n_laps)
             
-            if printer is not None and step_i % 100 == 0:
-                current_trajectory = np.array(self._history)
-                
-                printer.plot_trajectory_frame(current_trajectory)
+            if step_i % 100 == 0:
+                print_trajectory()
 
             step_i += 1
 
-        printer.plot_trajectory_frame(current_trajectory)
-        #plt.waitforbuttonpress()
+        print_trajectory()
+
+        return Trajectory(np.array(self._history), self._spline_optimizer, self.env.timestep)
 
     def save_history(self, path):
         # Create path if it doesn't exist
@@ -78,4 +85,4 @@ class F1TenthSoloSimulator(Simulator):
         np.save(os.path.join(path, 'history.npy'), np.array(self._history))
 
         # Dump spline
-        self._spline_optimizer.dump_spline_and_points(os.path.join(path, 'spline.npy'))
+        self._spline_optimizer.dump_spline_and_points(os.path.join(path, 'spline.pickle'))
