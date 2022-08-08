@@ -4,6 +4,11 @@ from ..model.PastPredictor.PastPredictor import PastPredictor
 
 class Trajectory:
     def __init__(self, history, optimizer, timestep):
+        """
+        Given a history of the trajectory, creates a trajectory object
+
+        :param history: history in the format in rows of [s, delta]
+        """
         self.__history = history
         self.__optimizer = optimizer
         self.__data_np = self.history_to_series()
@@ -11,13 +16,12 @@ class Trajectory:
 
     def from_dt(series, optimizer, timestep, initial_progress):
         """
-        Returns the trajectory object from series of [delta_progress, delta]
+        Returns the trajectory object from series of [delts_s, delta]
 
-        series: trajectory in the format in rows of [delta_progress, delta]
-        initial_progress: initial progress of the trajectory
-        optimizer: spline optimzer
-
-        returns: trajectory object
+        :param series: trajectory in the format in rows of [delts_s, delta]
+        :param initial_progress: initial progress of the trajectory
+        :param optimizer: spline optimzer
+        :return: trajectory object
         """
 
         # Converting delta progress to progress
@@ -26,19 +30,19 @@ class Trajectory:
         return Trajectory(history, optimizer, timestep)
 
     def history_to_series(self):
-        progresses = self.__history[:, 0]
+        s = self.__history[:, 0]
+        delta_s = np.diff(s)
+        progresses = s / self.__optimizer.get_track_length()
         deltas = self.__history[:, 1]
         curvatures = [self.__optimizer.k(progress) for progress in progresses]
 
-        delta_progress = np.diff(progresses)
-
-        return np.array([delta_progress, deltas[:-1], curvatures[:-1]]).T
+        return np.array([delta_s, deltas[:-1], curvatures[:-1]]).T
 
     def as_dt(self):
         """
         Returns the trajectory alongside in fixed timesteps
 
-        returns: trajectory in the format in rows of [delta_progress, delta]
+        :return: trajectory in the format in rows of [delta_s, delta]
         """
         return self.__data_np[:, :-1]
 
@@ -46,7 +50,7 @@ class Trajectory:
         """
         Returns the curvatures for fixed timesteps
 
-        returns: curvatures
+        :return: curvatures
         """
 
         return self.__data_np[:, 2]
@@ -55,7 +59,7 @@ class Trajectory:
         """
         Returns the timestep
 
-        returns: timestep in miliseconds
+        :return: timestep in miliseconds
         """
         return self.__timestep
 
@@ -63,7 +67,7 @@ class Trajectory:
         """
         Returns the spline optimizer
         
-        returns: spline optimizer
+        :return: spline optimizer
         """
         return self.__optimizer
 
@@ -71,7 +75,7 @@ class Trajectory:
         """
         Returns the final progress of the trajectory
 
-        returns: final progress
+        :return: final progress
         """
         return self.__history[-1, 0]
 
@@ -79,16 +83,25 @@ class Trajectory:
         """
         Returns the history of the trajectory
 
-        returns: history in the format in rows of [progress, delta]
+        :return: history in the format in rows of [progress, delta]
         """
         return self.__history
+
+    def get_normalized_history(self):
+        """
+        Returns the normalized history of the trajectory
+
+        :return: normalized history in the format in rows of [progress, delta]
+        """
+        progresses = self.__history[:, 0] / self.__optimizer.get_track_length()
+        return np.array([progresses, self.__history[:, 1]]).T
     
     def slice_time(self, init=0, end=1):
         """
         Returns the trajectory sliced between init and end, in a scaled between 0 and 1 one in time units
 
-        init: initial time scaled between 0 and 1
-        end: end time scaled between 0 and 1 (bigger than init)
+        :param init: initial time scaled between 0 and 1
+        :param end: end time scaled between 0 and 1 (bigger than init)
         """
         def time_progress_to_index(progress):
             return int(progress*len(self.__history))
@@ -101,4 +114,4 @@ class Trajectory:
         
         future_trajectory = predictor.predict(self, horizon)
         return future_trajectory.curvatures_dt()
-        
+ 

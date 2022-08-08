@@ -2,33 +2,38 @@ import numpy as np
 from tqdm import tqdm
 
 from trajectory_predictor.dataset.Dataset import Dataset
-from trajectory_predictor.trajectory.Trajectory import Trajectory
-from trajectory_predictor.utils.SplineOptimizer import SplineOptimizer
 from trajectory_predictor.controller.WallFollowerController import WallFollowerController
 from trajectory_predictor.simulator.F1TenthSoloSimulator import F1TenthSoloSimulator
-
+from trajectory_predictor.utils.generators import multiparameter_generator
 
 def main():
     dataset = Dataset()
-    map_path = '/trajectory_predictor/maps/map0'
-    centerline_path = f'{map_path}/centerline.csv'
-    spline_path = f'{map_path}/spline.pickle'
+    base_map_path = '/trajectory_predictor/maps/map'
+    n_maps = 2
     timestep = 0.03
 
-    track = np.loadtxt(centerline_path, delimiter=',')
-    optim = SplineOptimizer(track)
-    trajectory_list = []
+    controller_parameters = {
+        'speed': np.linspace(2.5, 3, 3),
+        'kp': [0.0001],
+    }
+    controllers = [controller for controller in multiparameter_generator(WallFollowerController, controller_parameters)]
+    simulator_parameters = {
+        'map_path': [f'{base_map_path}{i}' for i in range(n_maps)],
+        'controller': controllers,
+        'timestep': [timestep],
+        'max_track_width': [3.243796630159458],
+        'verbose': [False],
+    }
+    simulators = [simulator for simulator in multiparameter_generator(F1TenthSoloSimulator, simulator_parameters)]
 
     print("Generating trajectories...")
-    optim = SplineOptimizer(track)
-    optim.load_spline(spline_path)
-    for speed in tqdm(np.linspace(2.5, 3, 3)):
-        # Initialization
-        controller = WallFollowerController(speed=speed)
-        simulator = F1TenthSoloSimulator(map_path, controller, optim, False, timestep)
+    trajectory_list = []
 
-        # Running simulation
+    for simulator in tqdm(simulators):
         trajectory = simulator.run()
+        final_progress = trajectory.get_final_progress()
+        if final_progress < 0.99:
+            print(f"Warning: trajectory did not reach goal and stopped at {final_progress}")
         trajectory_list.append(trajectory)
 
     print("Saving dataset...")

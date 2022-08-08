@@ -148,6 +148,9 @@ class SplineOptimizer:
     def get_track_ring(self):
         return self.track_ring
 
+    def get_track_length(self):
+        return self.track_ring.length
+
     def get_id(self):
         if self.__id is None:
             raise Exception('Spline not initialized')
@@ -161,7 +164,7 @@ class SplineOptimizer:
         """
         Returns the curavature for progress in [0, 1]
         """
-        assert 0 <= progress <= 1
+        assert 0 <= progress <= 1, f'Progress {progress} not in [0, 1]'
     
         s = self.map_progress_to_s(progress)
 

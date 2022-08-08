@@ -1,5 +1,3 @@
-from cProfile import label
-from dis import dis
 import yaml
 
 import numpy as np
@@ -25,7 +23,7 @@ if LATEX_OUTPUT:
 class TrajectoryPrinter:
     def __init__(self, map_path, map_ext, centerline_path, track_width):
         # Read black and white image
-        map_image_path = f'{map_path}{map_ext}'
+        map_image_path = f'{map_path}/map{map_ext}'
         self.map = cv2.imread(map_image_path, cv2.IMREAD_GRAYSCALE)
 
         # Read configuration yaml file for the map
@@ -45,10 +43,10 @@ class TrajectoryPrinter:
         self.inner = np.array(track_xy_offset_in.exterior)
         self.outer = np.array(track_xy_offset_out.exterior)
 
-    def _load_trajectory(self, trajectory_path):
-        self.trajectory = np.load(trajectory_path)
-        self.progress = self.trajectory[:, 0]
-        self.deltas = self.trajectory[:, 1]
+    def _load_trajectory(self, trajectory):
+        history = trajectory.get_history()
+        self.progress = history[:, 0]
+        self.deltas = history[:, 1]
 
     def _add_to_centerline(self, progresses, deltas):
         points_over_centerline = []
@@ -112,17 +110,17 @@ class TrajectoryPrinter:
 
         cv2.imwrite('./output.png', map_rgb)
     
-    def plot_curvature_with_delta(self, trajectory_path, tolerance=0.5, verbose=False, optimize=True):
+    def plot_curvature_with_delta(self, trajectory, tolerance=0.5, verbose=False, optimize=True):
         """
         Produces a plot which shows the evolution of the curvature over the trajectory
         
-        trajectory_path: path to the trajectory file
-        tolerance: tolerance for the spline interpolation
-        verbose: if True, prints the optimization steps
-        optimize: if True, optimizes the spline to have fewer points
+        :param trajectory: trajectory object
+        :param tolerance: tolerance for the spline interpolation
+        :param verbose: if True, prints the optimization steps
+        :param optimize: if True, optimizes the spline to have fewer points
         """
 
-        self._load_trajectory(trajectory_path)
+        self._load_trajectory(trajectory)
         spline_optim = SplineOptimizer(self.centerline)
         spline_optim.sample_spline_by_tolerance(tolerance, optimize=optimize, verbose=verbose)
 
@@ -160,14 +158,14 @@ class TrajectoryPrinter:
             plt.savefig('./trajectory_evaluation.png')
         plt.show()
 
-    def plot_trajectory(self, trajectory_path, matplotlib=True):
+    def plot_trajectory(self, trajectory, matplotlib=True):
         """
         Produces a plot which shows the trajectory
         
-        trajectory_path: path to the trajectory file
-        matplotlib: if True, uses matplotlib to plot the trajectory else uses a OpenCV
+        :param trajectory: trajectory object
+        :param matplotlib: if True, uses matplotlib to plot the trajectory else uses a OpenCV
         """
-        self._load_trajectory(trajectory_path)
+        self._load_trajectory(trajectory)
 
         displaced_points = self._add_to_centerline(self.progress, self.deltas)
 
@@ -179,7 +177,16 @@ class TrajectoryPrinter:
             args = (self.track_origin, self.track_scale)
             self._print_over_map_image(displaced_points, *args)
 
-    def plot_trajectory_with_prediction(self,init, trajectory,prediction,name = 'name'):
+    def plot_trajectory_with_prediction(self,init, trajectory, prediction, name = 'name'):
+        """
+        Produces a plot which shows the trajectory with the prediction
+
+        :param trajectory: full trajectory to display
+        :param prediction: trajectory object containing the prediction
+        """
+        # For legacy reasons, the trajectory is converted to normalized history
+        trajectory = trajectory.get_normalized_history()
+        prediction = prediction.get_normalized_history()
 
         progress_trajectory = trajectory[:, 0]
         deltas_trajectory = trajectory[:, 1]
@@ -204,6 +211,9 @@ class TrajectoryPrinter:
         plt.show()
 
     def plot_trajectory_frame(self, trajectory, pause_delay=0.05,display=False):
+        """Produces a plot which shows the trajectory when its being built"""
+        trajectory = trajectory.get_normalized_history()
+
         progress = trajectory[:, 0]
         deltas = trajectory[:, 1]
 
@@ -215,6 +225,7 @@ class TrajectoryPrinter:
             plt.pause(pause_delay)
         else:
             plt.savefig('./trajectory.png')
+            plt.close()
 
 
 if __name__ == '__main__':

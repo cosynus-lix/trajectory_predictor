@@ -22,4 +22,4 @@ if __name__ == "__main__":
     full_trajectory_history = full_trajectory.get_history()
     init_index = int(len(full_trajectory_history) * predict_progress)
 
-    trajectory_printer.plot_trajectory_with_prediction(init_index, full_trajectory.get_history(), prediction.get_history())
+    trajectory_printer.plot_trajectory_with_prediction(init_index, full_trajectory, prediction)

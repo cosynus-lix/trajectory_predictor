@@ -12,8 +12,8 @@ def main():
     dataset.load(f'/trajectory_predictor/datasets/test_datset')
     full_trajectory = dataset.get_trajectories()[0]
 
-    predict_progress = 0.3
-    horizon = 800
+    predict_progress = .5
+    horizon = 400
     trajectory = full_trajectory.slice_time(end=predict_progress)
     prediction = model.predict(trajectory, horizon)
 

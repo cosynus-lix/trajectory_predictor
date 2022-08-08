@@ -4,7 +4,7 @@ from trajectory_predictor.dataset.Dataset import Dataset
 def main():
     dataset = Dataset()
     dataset.load(f'/trajectory_predictor/datasets/test_datset')
-    model = DartsRNNModel()
+    model = DartsRNNModel(n_layers=2)
     model.train(dataset, 10)
     model.save('../experiments/model0')
 
