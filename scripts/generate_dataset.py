@@ -18,7 +18,7 @@ def main():
     }
     controllers = [controller for controller in multiparameter_generator(WallFollowerController, controller_parameters)]
     simulator_parameters = {
-        'map_path': [f'{base_map_path}{i}' for i in range(n_maps)],
+        'map_path': [f'{base_map_path}{i}' for i in range(1, n_maps+1)],
         'controller': controllers,
         'timestep': [timestep],
         'max_track_width': [3.243796630159458],
@@ -38,7 +38,15 @@ def main():
 
     print("Saving dataset...")
     dataset.add_data(trajectory_list)
-    dataset.dump(f'/trajectory_predictor/datasets/test_datset')
+    dataset_name = 'train_small'
+    dataset.dump(f'/trajectory_predictor/datasets/{dataset_name}')
+    # Add dataset description
+    with open(f'/trajectory_predictor/datasets/{dataset_name}/description.txt', 'w') as f:
+        f.write(f'{len(trajectory_list)} trajectories generated with {len(simulators)} simulators and {len(controllers)} controllers')
+        f.write(f'\nTimestep: {timestep}')
+        f.write(f'\nController parameters: {controller_parameters}')
+        f.write(f'\nSimulator parameters: {simulator_parameters}')
+        f.write(f'\nN maps: {n_maps}')
 
 if __name__ == "__main__":
     main()

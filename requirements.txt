@@ -1,0 +1,119 @@
+absl-py==1.0.0
+aiohttp==3.8.1
+aiosignal==1.2.0
+appnope==0.1.3
+astropy==5.1
+asttokens @ file:///opt/conda/conda-bld/asttokens_1646925590279/work
+async-timeout==4.0.2
+attrs==21.4.0
+backcall @ file:///home/ktietz/src/ci/backcall_1611930011877/work
+cachetools==5.2.0
+certifi @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_83242e7e-f82d-4a71-8ef2-9d71d212d249gu_wxmeq/croots/recipe/certifi_1655968827803/work/certifi
+charset-normalizer==2.0.12
+cloudpickle==1.6.0
+cmdstanpy==0.9.68
+convertdate==2.4.0
+cycler==0.11.0
+Cython==0.29.30
+debugpy @ file:///opt/concourse/worker/volumes/live/e17abc9f-08a9-4dca-4e9b-e6d24bde47ce/volume/debugpy_1637091828617/work
+decorator @ file:///opt/conda/conda-bld/decorator_1643638310831/work
+entrypoints @ file:///opt/concourse/worker/volumes/live/84dd3e87-c86b-405f-5113-9d1bdbfd10b9/volume/entrypoints_1649926452122/work
+ephem==4.1.3
+executing @ file:///opt/conda/conda-bld/executing_1646925071911/work
+-e git+https://github.com/f1tenth/f1tenth_gym.git@28583c15454823f38c31b27bc58f9e7f481c6b23#egg=f110_gym&subdirectory=gym
+fil-finder==1.7.2
+fonttools==4.33.3
+frozenlist==1.3.0
+fsspec==2022.5.0
+google-auth==2.6.6
+google-auth-oauthlib==0.4.6
+grpcio==1.46.3
+gym==0.19.0
+h5py==3.7.0
+hijri-converter==2.2.4
+holidays==0.13
+idna==3.3
+imageio==2.19.3
+importlib-metadata==4.11.4
+ipykernel @ file:///opt/concourse/worker/volumes/live/675cc243-e35d-4e85-47e2-838adcdd7698/volume/ipykernel_1647000791373/work/dist/ipykernel-6.9.1-py3-none-any.whl
+ipython @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_2ff86d21-7133-4fee-b3b2-6349ba52809eua87k1km/croots/recipe/ipython_1651600160735/work
+jedi @ file:///opt/concourse/worker/volumes/live/fb2e45f1-1dff-42fa-6cab-bd094a4c4372/volume/jedi_1644315264796/work
+joblib==1.1.0
+jupyter-client @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_4d0a367d-74c5-447f-831e-3e1fd3984797bfrg56pj/croots/recipe/jupyter_client_1650622206454/work
+jupyter-core @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_8ba802e0-15f6-4a45-a9ee-144034526783uwxtvvew/croots/recipe/jupyter_core_1651671235924/work
+kiwisolver==1.4.2
+korean-lunar-calendar==0.2.1
+llvmlite==0.37.0
+LunarCalendar==0.0.9
+Markdown==3.3.7
+matplotlib==3.5.2
+matplotlib-inline==0.1.3
+mpmath==1.2.1
+multidict==6.0.2
+nest-asyncio @ file:///opt/concourse/worker/volumes/live/a7f89d20-060a-480e-487d-25959e806725/volume/nest-asyncio_1649847918874/work
+networkx==2.8.4
+numba==0.54.1
+numpy==1.20.0
+oauthlib==3.2.0
+opencv-python==4.5.5.64
+packaging==21.3
+pandas==1.4.2
+parso @ file:///opt/conda/conda-bld/parso_1641458642106/work
+patsy==0.5.2
+pexpect @ file:///tmp/build/80754af9/pexpect_1605563209008/work
+pickleshare @ file:///tmp/build/80754af9/pickleshare_1606932040724/work
+Pillow==9.1.0
+pmdarima==1.8.5
+prompt-toolkit==3.0.29
+protobuf==4.21.1
+ptyprocess @ file:///tmp/build/80754af9/ptyprocess_1609355006118/work/dist/ptyprocess-0.7.0-py2.py3-none-any.whl
+pure-eval @ file:///opt/conda/conda-bld/pure_eval_1646925070566/work
+pyasn1==0.4.8
+pyasn1-modules==0.2.8
+pyDeprecate==0.3.2
+pyerfa==2.0.0.1
+pyglet==1.5.23
+Pygments==2.12.0
+PyMeeus==0.5.11
+PyOpenGL==3.1.6
+pyparsing==3.0.8
+pystan==2.19.1.1
+python-dateutil @ file:///tmp/build/80754af9/python-dateutil_1626374649649/work
+pytorch-lightning==1.6.3
+pytz==2022.1
+PyWavelets==1.3.0
+PyYAML==6.0
+pyzmq @ file:///opt/concourse/worker/volumes/live/12b008ff-2acb-4e15-682d-fce50395a9d4/volume/pyzmq_1638434992289/work
+requests==2.27.1
+requests-oauthlib==1.3.1
+rsa==4.8
+scikit-image==0.19.3
+scikit-learn==1.1.1
+scikit-network==0.16.0
+scipy==1.7.1
+setuptools-git==1.2
+Shapely==1.8.2
+six @ file:///tmp/build/80754af9/six_1644875935023/work
+stack-data @ file:///opt/conda/conda-bld/stack_data_1646927590127/work
+statsforecast==0.5.5
+statsmodels==0.13.2
+tbats==1.1.0
+tensorboard==2.9.0
+tensorboard-data-server==0.6.1
+tensorboard-plugin-wit==1.8.1
+threadpoolctl==3.1.0
+tifffile==2022.5.4
+torch==1.11.0
+torchmetrics==0.8.2
+tornado @ file:///opt/concourse/worker/volumes/live/05341796-4198-4ded-4a9a-332fde3cdfd1/volume/tornado_1606942323372/work
+tqdm==4.64.0
+traitlets==5.2.1.post0
+-e git+ssh://git@github.com/cosynus-lix/trajectory_predictor.git@d63ac212c667168d884e61d38007b10d6a89f09e#egg=trajectory_predictor
+typing_extensions==4.2.0
+ujson==5.3.0
+urllib3==1.26.9
+wcwidth @ file:///Users/ktietz/demo/mc3/conda-bld/wcwidth_1629357192024/work
+Werkzeug==2.1.2
+xarray==2022.3.0
+yarl==1.7.2
+zipp==3.8.0

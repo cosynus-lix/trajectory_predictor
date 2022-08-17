@@ -5,8 +5,6 @@ import pandas as pd
 import pickle
 
 from darts import TimeSeries
-from darts.models import RNNModel
-from darts.dataprocessing.transformers import Scaler
 from sklearn.preprocessing import MinMaxScaler
 
 from ..trajectory.Trajectory import Trajectory
@@ -14,13 +12,12 @@ from ..dataset.Dataset import Dataset
 from .PastPredictor.MeanPredictor import MeanPredictor
 from .Model import Model
 
-class DartsRNNModel(Model):
-    def __init__(self, n_layers=2, input_chunk_length=200, training_length=500):
+class DartsFutureCovariatesModel(Model):
+    def __init__(self, darts_model, darts_model_class):
         super().__init__()
 
-        self._rnn = RNNModel(input_chunk_length=input_chunk_length, 
-                    training_length=training_length, 
-                    n_rnn_layers=n_layers)
+        self._model = darts_model
+        self._model_class = darts_model_class
 
         self._trf = None
         self._dt = None
@@ -55,15 +52,15 @@ class DartsRNNModel(Model):
             curvatures_timeseries_list.append(TimeSeries.from_values(trajectory.curvatures_dt()))
         return series_timeseries_list, curvatures_timeseries_list
 
-    def train(self, dataset: Dataset, epochs=1):
+    def train(self, dataset: Dataset, **kwargs):
         # TODO: add max splits per time series
         # if TfClass 
         series, covariates = self.dataset_to_series_and_curvatures_timeseries_list(dataset)
 
-        self._rnn.fit(series, 
-                    future_covariates=covariates, 
-                    epochs=epochs, 
-                    verbose=True)
+        self._model.fit(series, 
+                    past_covariates=covariates,  
+                    verbose=True, 
+                    **kwargs)
 
     def predict(self, trajectory: Trajectory, horizon=10):
         """
@@ -82,10 +79,10 @@ class DartsRNNModel(Model):
         timeseries = TimeSeries.from_values(transformed_series)
 
         future_covariates = TimeSeries.from_values(curvatures)
-        prediction = self._rnn.predict(horizon,
+        prediction = self._model.predict(horizon,
                               series=timeseries,
-                              past_covariates=None,
-                              future_covariates=future_covariates)
+                            #   past_covariates=None,
+                              past_covariates=future_covariates)
         prediction = self._trf.inverse_transform(prediction.values())
     
         return Trajectory.from_dt(prediction, trajectory.get_optim(), trajectory.get_dt(), trajectory.get_final_progress())
@@ -94,18 +91,18 @@ class DartsRNNModel(Model):
         if not os.path.exists(path):
             os.makedirs(path)
         # TODO: update pytorch-lightning when https://github.com/unit8co/darts/issues/1116 is solved
-        model_name = 'darts_rnn_model.pth.tar'
-        self._rnn.save_model(f'{path}/{model_name}')
+        model_name = 'darts_model.pth.tar'
+        self._model.save_model(f'{path}/{model_name}')
 
-        with open(f'{path}/rnn_helpers.pickle', 'wb') as handle:
+        with open(f'{path}/helpers.pickle', 'wb') as handle:
             pickle.dump((self._trf, self._dt), handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     
     def load(self, path):
         if not os.path.exists(path):
             raise FileNotFoundError
-        model_name = 'darts_rnn_model.pth.tar'
-        self._rnn = RNNModel.load_model(f'{path}/{model_name}')
+        model_name = 'darts_model.pth.tar'
+        self._model = self._model_class.load_model(f'{path}/{model_name}')
 
-        with open(f'{path}/rnn_helpers.pickle', 'rb') as handle:
+        with open(f'{path}/helpers.pickle', 'rb') as handle:
             self._trf, self._dt = pickle.load(handle)
