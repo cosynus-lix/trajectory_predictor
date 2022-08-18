@@ -1,7 +1,7 @@
 #! /bin/bash
 
 base_path="$(git rev-parse --show-toplevel)"
-num_maps=10
+num_maps=110
 
 # Creating maps
 python $base_path/scripts/track_generator/random_trackgen.py --base_path $base_path/ --num_maps $num_maps
