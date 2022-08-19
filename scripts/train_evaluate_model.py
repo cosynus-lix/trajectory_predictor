@@ -18,7 +18,7 @@ from trajectory_predictor.evaluation.TrajectoryEvaluator import TrajectoryEvalua
 
 def main():
     model_class = NBEATSModel
-    model_params = {'input_chunk_length': 20, 'output_chunk_length': 50}
+    model_params = {'input_chunk_length': 20, 'output_chunk_length': 1}
     darts_model = model_class(**model_params)
 
     train_dataset = Dataset()
