@@ -8,9 +8,11 @@ from darts import TimeSeries
 from sklearn.preprocessing import MinMaxScaler
 
 from ..trajectory.Trajectory import Trajectory
+from ..trajectory.TrajectoryDs import TrajectoryDs
 from ..dataset.Dataset import Dataset
 from .PastPredictor.MeanPredictor import MeanPredictor
 from .Model import Model
+from tqdm import tqdm
 
 class DartsFutureCovariatesModel(Model):
     def __init__(self, darts_model, darts_model_class):
@@ -31,22 +33,26 @@ class DartsFutureCovariatesModel(Model):
         mins_maxs_stack = np.vstack([mins_maxs1, mins_maxs2])
         return self._get_mins_maxs(mins_maxs_stack)
 
+    def series_ds(self, trajectory: Trajectory):
+        trajds = TrajectoryDs.from_trajectory_dt(trajectory, 0.1, 0)
+        return trajds.as_ds()
+
     def dataset_to_series_and_curvatures_timeseries_list(self, dataset: Dataset):
         trajectories = dataset.get_trajectories()
         series_timeseries_list = []
         curvatures_timeseries_list = []
         self._dt = trajectories[0].get_dt()
         mins_maxs = None
-        for trajectory in trajectories:
+        for trajectory in tqdm(trajectories):
             if trajectory.get_dt() != self._dt:
                 raise ValueError('All trajectories must have the same dt')
-            series = trajectory.as_dt()
+            series = self.series_ds(trajectory)
             mins_maxs = self._get_mins_maxs(series) if mins_maxs is None \
                 else self._simplify_mins_maxs(mins_maxs, self._get_mins_maxs(series))
         self._trf = MinMaxScaler(feature_range=(-1, 1))
         self._trf.fit(mins_maxs)
-        for trajectory in trajectories:
-            series = trajectory.as_dt()
+        for trajectory in tqdm(trajectories):
+            series = self.series_ds(trajectory)
             transformed_series = self._trf.transform(series)
             series_timeseries_list.append(TimeSeries.from_values(transformed_series))
             curvatures_timeseries_list.append(TimeSeries.from_values(trajectory.curvatures_dt()))
@@ -66,13 +72,12 @@ class DartsFutureCovariatesModel(Model):
         """
         trajectory: trajectory containing (delta_progress, deltas) 
         """
-        trajectory_dt = trajectory.get_dt()
-        assert trajectory_dt == self._dt, f'Trajectory dt ({trajectory_dt}) must match the model ({self._dt})'
-
-        predictor = MeanPredictor()
-        series = trajectory.as_dt()
-        past_curvatures = trajectory.curvatures_dt()
-        future_curvatures = trajectory.get_future_curvatures(predictor, horizon)
+        # trajectory_dt = trajectory.get_dt()
+        # assert trajectory_dt == self._dt, f'Trajectory dt ({trajectory_dt}) must match the model ({self._dt})'
+        trajectory = TrajectoryDs.from_trajectory_dt(trajectory, 0.1, 0)
+        series = trajectory.as_ds()
+        past_curvatures = trajectory.curvatures_ds()
+        future_curvatures = trajectory.get_future_curvatures(horizon)
         curvatures = np.concatenate((past_curvatures, future_curvatures))
 
         transformed_series = self._trf.transform(series)
@@ -85,7 +90,7 @@ class DartsFutureCovariatesModel(Model):
                               past_covariates=future_covariates)
         prediction = self._trf.inverse_transform(prediction.values())
     
-        return Trajectory.from_dt(prediction, trajectory.get_optim(), trajectory.get_dt(), trajectory.get_final_progress())
+        return TrajectoryDs.from_ds(prediction, trajectory.get_optim(), 0.1, trajectory.get_final_progress(), trajectory.get_history()[-1, 0])
 
     def save(self, path):
         if not os.path.exists(path):

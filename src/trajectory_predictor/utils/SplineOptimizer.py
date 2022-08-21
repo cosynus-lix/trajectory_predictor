@@ -164,7 +164,13 @@ class SplineOptimizer:
         """
         Returns the curavature for progress in [0, 1]
         """
-        assert 0 <= progress <= 1, f'Progress {progress} not in [0, 1]'
+        # assert 0 <= progress <= 1, f'Progress {progress} not in [0, 1]'
+        if not (0 <= progress <= 1):
+            print(f'Warning: progress {progress} not in [0, 1]')
+        if progress > 1:
+            progress = progress-int(progress)
+        if progress < 0:
+            raise Exception(f'Progress {progress} < 0')
     
         s = self.map_progress_to_s(progress)
 

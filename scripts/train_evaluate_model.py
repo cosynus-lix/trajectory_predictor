@@ -17,8 +17,8 @@ from trajectory_predictor.dataset.Dataset import Dataset
 from trajectory_predictor.evaluation.TrajectoryEvaluator import TrajectoryEvaluator
 
 def main():
-    model_class = NBEATSModel
-    model_params = {'input_chunk_length': 20, 'output_chunk_length': 1}
+    model_class = TCNModel
+    model_params = {'input_chunk_length': 100, 'output_chunk_length': 50}
     darts_model = model_class(**model_params)
 
     train_dataset = Dataset()
@@ -39,21 +39,21 @@ def main():
     evaluation_dataset.load(f'/trajectory_predictor/datasets/{evaluation_dataset_name}')
 
     full_trajectory = evaluation_dataset.get_trajectories()[0]
-    table = TrajectoryEvaluator.evaluate(full_trajectory, model, [10, 20, 50, 100, 400])
+    table = TrajectoryEvaluator.evaluate(full_trajectory, model, [8, 15, 38, 75, 300])
 
     predict_progress = .25
-    horizon = 400
+    horizon = 300
     trajectory = full_trajectory.slice_time(end=predict_progress)
     prediction = model.predict(trajectory, horizon)
 
     ax = plt.gca()
     ax.plot(full_trajectory.get_history()[:, 0], full_trajectory.get_history()[:, 1])
-    ax.plot(prediction.get_history()[:, 0], prediction.get_history()[:, 1])
+    ax.plot(prediction.get_s_space(), prediction.get_history()[:, 1])
     model_class_name = model_class.__name__
 
     # Dump everything to file
     filename = f'{model_class_name}_{dataset_name}_{evaluation_dataset_name}'
-    files = glob.glob(f'/trajectory_predictor/experiments/{filename}_*')
+    files = glob.glob(f'/trajectory_predictor/experiments/s_{filename}_*')
     try:
         largest_number = max([int(file.split('_')[-1].split('.')[0]) for file in files])
         index = largest_number + 1
@@ -61,7 +61,7 @@ def main():
         index = 0
     
     print(index)
-    with open(f'/trajectory_predictor/experiments/{filename}_{index}.txt', 'w') as f:
+    with open(f'/trajectory_predictor/experiments/s_{filename}_{index}.txt', 'w') as f:
         f.write(f'{model_class_name}\n')
         f.write(f'Train dataset: {dataset_name}\n')
         f.write(f'Evaluation dataset: {evaluation_dataset_name}\n')
@@ -69,7 +69,7 @@ def main():
         f.write(f'Train time: {t1}\n')
         f.write(f'Model parameters: {model_params}\n')
         f.write(f'{table}\n')
-    plt.savefig(f'/trajectory_predictor/experiments/prediction_{filename}_{index}.png')
+    plt.savefig(f'/trajectory_predictor/experiments/s_prediction_{filename}_{index}.png')
 
 
 
