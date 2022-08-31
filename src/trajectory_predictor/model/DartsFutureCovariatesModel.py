@@ -58,7 +58,7 @@ class DartsFutureCovariatesModel(Model):
         series, covariates = self.dataset_to_series_and_curvatures_timeseries_list(dataset)
 
         self._model.fit(series, 
-                    past_covariates=covariates,  
+                    future_covariates=covariates,  
                     verbose=True, 
                     **kwargs)
 
@@ -81,8 +81,8 @@ class DartsFutureCovariatesModel(Model):
         future_covariates = TimeSeries.from_values(curvatures)
         prediction = self._model.predict(horizon,
                               series=timeseries,
-                            #   past_covariates=None,
-                              past_covariates=future_covariates)
+                              past_covariates=None,
+                              future_covariates=future_covariates)
         prediction = self._trf.inverse_transform(prediction.values())
     
         return Trajectory.from_dt(prediction, trajectory.get_optim(), trajectory.get_dt(), trajectory.get_final_progress())

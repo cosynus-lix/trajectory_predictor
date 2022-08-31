@@ -9,7 +9,7 @@ import shapely.geometry as shp
 from .SplineOptimizer import SplineOptimizer
 from .CoordinateTransform import CoordinateTransform
 
-LATEX_OUTPUT = False
+LATEX_OUTPUT = True
 
 if LATEX_OUTPUT:
     matplotlib.use("pgf")
@@ -74,17 +74,14 @@ class TrajectoryPrinter:
         if points:
             for k in range(displaced_points.shape[0]):
                 if (k%99 == 0):
-                    if (color == 'm'):
-                        ax.plot(displaced_points[k,0],displaced_points[k,1],'mo')
-                    else:
-                        ax.plot(displaced_points[k,0],displaced_points[k,1],'bo')
+                    ax.plot(displaced_points[k,0],displaced_points[k,1],f'{color}o')
         if show_centerline:
             progresses = np.linspace(0, 1-0.0001, 1000)
             points_over_centerline = self._add_to_centerline(progresses, np.zeros(len(progresses)))
-            ax.plot(points_over_centerline[:,0], points_over_centerline[:,1], ':',color = 'grey', alpha=0.5,label = 'center line')
+            ax.plot(points_over_centerline[:,0], points_over_centerline[:,1], ':',color = 'grey', alpha=0.5,label = 'Center line')
 
         # Plot config
-        ax.set_title(title,fontsize = 20)
+        # ax.set_title(title,fontsize = 20)
         ax.set_aspect('equal')
         # Remove x and y axis
         ax.set_xticks([])
@@ -203,11 +200,11 @@ class TrajectoryPrinter:
         displaced_points_prediction = self._add_to_centerline(progress_prediction, deltas_prediction)
         
         _, ax = plt.subplots()
-        self._print_map_matplotlib(ax, displaced_points_trajectory,color ='r',label ='True trajectory ')
-        self._print_map_matplotlib(ax, displaced_points_prediction,show_centerline= False,color ='b',label = 'Predicted trajectory',points=True)
-        self._print_map_matplotlib(ax,displaced_points_trajectory_2,color = 'm',label = 'True trajectory on zone',points=True)
-        plt.legend(fontsize=20)
-        plt.savefig('./'+ name +'.png',dpi = 600)
+        self._print_map_matplotlib(ax, displaced_points_trajectory,color ='r',label ='True trajectory ', show_centerline= False)
+        self._print_map_matplotlib(ax,displaced_points_trajectory_2,color = 'r',label = None,points=True, show_centerline= False)
+        self._print_map_matplotlib(ax, displaced_points_prediction,color ='b',label = 'Predicted trajectory',points=True, show_centerline= True)
+        plt.legend(fontsize=10)
+        plt.savefig('./'+ name +'.pgf',dpi = 600)
         plt.show()
 
     def plot_trajectory_frame(self, trajectory, pause_delay=0.05,display=False):

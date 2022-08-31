@@ -17,12 +17,12 @@ from trajectory_predictor.dataset.Dataset import Dataset
 from trajectory_predictor.evaluation.TrajectoryEvaluator import TrajectoryEvaluator
 
 def main():
-    model_class = NBEATSModel
-    model_params = {'input_chunk_length': 20, 'output_chunk_length': 1}
+    model_class = TFTModel
+    model_params = {'input_chunk_length': 20, 'output_chunk_length': 50}
     darts_model = model_class(**model_params)
 
     train_dataset = Dataset()
-    dataset_name = 'train_medium'
+    dataset_name = 'train_small'
     train_dataset.load(f'/trajectory_predictor/datasets/{dataset_name}')
 
     model = DartsFutureCovariatesModel(darts_model, model_class)
